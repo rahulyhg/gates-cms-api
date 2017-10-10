@@ -58,7 +58,9 @@ $app->singleton(
 | route or middleware that'll be assigned to some specific routes.
 |
 */
-
+$app->middleware([
+    \Barryvdh\Cors\HandleCors::class
+]);
 // $app->middleware([
 //    App\Http\Middleware\ExampleMiddleware::class
 // ]);
@@ -77,6 +79,8 @@ $app->singleton(
 | totally optional, so you are not required to uncomment this line.
 |
 */
+$app->configure('cors');
+$app->register(Barryvdh\Cors\ServiceProvider::class);
 
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
