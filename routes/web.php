@@ -12,40 +12,16 @@
 */
 use Illuminate\Http\Request;
 use App\Models\Page;
+use App\Controllers\PageController;
 
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-
-$router->get('page', function() {
-  return response()->json(Page::all());
-});
-
-$router->get('page/{id}', function($id) {
-  return response()->json(Page::find($id));
-});
-
-$router->post('page', function(Request $request) {
-  $page = new Page();
-
-  $page->title = $request->input('title');
-  $page->body = $request->input('body');
-
-  $page->save();
-  return response()->json($page, 201);
-});
-
-$router->delete('page/{id}', function($id) {
-  Page::find($id)->delete();
-  return response('', 200);
-});
-
-$router->patch('page/{id}', function(Request $request, $id) {
-  $page = Page::find($id);
-  $page->title = $request->input('title', $page->title);
-  $page->body = $request->input('body', $page->body);
-
-  $page->save();
-  return response()->json($page);
+$router->group(['prefix' => 'page/'], function ($app) {
+    $app->get('/','PageController@index'); //get all the routes  
+    $app->post('/','PageController@store'); //store single route
+    $app->get('/{id}/', 'PageController@show'); //get single route
+    $app->patch('/{id}/','PageController@update'); //update single route
+    $app->delete('/{id}/','PageController@destroy'); //delete single route
 });
