@@ -22,7 +22,7 @@ try {
 $app = new Laravel\Lumen\Application(
     realpath(__DIR__.'/../')
 );
-$app->register('Nord\Lumen\Cors\CorsServiceProvider');
+// $app->register('Nord\Lumen\Cors\CorsServiceProvider');
 
 // $app->withFacades();
 
@@ -60,8 +60,9 @@ $app->singleton(
 |
 */
 $app->middleware([
-    'Nord\Lumen\Cors\CorsMiddleware',
-    \Barryvdh\Cors\HandleCors::class
+    App\Http\Middleware\CorsMiddleware::class
+    // 'Nord\Lumen\Cors\CorsMiddleware',
+    // \Barryvdh\Cors\HandleCors::class
 ]);
 
 // $app->middleware([
