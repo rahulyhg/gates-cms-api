@@ -83,8 +83,8 @@ $app->middleware([
 | totally optional, so you are not required to uncomment this line.
 |
 */
-$app->configure('cors');
-$app->register(Barryvdh\Cors\ServiceProvider::class);
+// $app->configure('cors');
+// $app->register(Barryvdh\Cors\ServiceProvider::class);
 
 // $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
