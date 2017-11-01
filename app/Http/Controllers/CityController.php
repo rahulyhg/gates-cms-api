@@ -12,7 +12,7 @@ class CityController extends Controller
      */
     public function index()
     {
-      return response()->json(City::all());
+      return response()->json(City::with('state')->get());
     }
 
 
@@ -28,6 +28,8 @@ class CityController extends Controller
         $this->validate($request, [
         'title' => 'required',
         'slug' => 'required',
+        'photo' => 'required',
+        'state_id' => 'required',
         'body' => 'required'
          ]);
 
@@ -35,6 +37,8 @@ class CityController extends Controller
 
         $city->slug = $request->input('slug');
         $city->title = $request->input('title');
+        $city->photo = $request->input('photo', $city->photo);
+        $city->state_id = $request->input('state_id', $city->state_id);
         $city->body = $request->input('body');
 
         $city->save();
@@ -49,7 +53,7 @@ class CityController extends Controller
      */
     public function show($id)
     {
-      return response()->json(City::find($id));
+      return response()->json(City::with('state')->find($id));
     }
 
 
@@ -66,11 +70,15 @@ class CityController extends Controller
       $this->validate($request, [
       'title' => 'required',
       'slug' => 'required',
+      'photo' => 'required',
+      'state_id' => 'required',
       'body' => 'required'
        ]);
 
       $city = City::find($id);
       $city->slug = $request->input('slug', $city->slug);
+      $city->photo = $request->input('photo', $city->photo);
+      $city->state_id = $request->input('state_id', $city->state_id);
       $city->title = $request->input('title', $city->title);
       $city->body = $request->input('body', $city->body);
       $city->save();

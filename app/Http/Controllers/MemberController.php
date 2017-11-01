@@ -28,7 +28,8 @@ class MemberController extends Controller
         $this->validate($request, [
         'title' => 'required',
         'slug' => 'required',
-        'body' => 'required'
+        'body' => 'required',
+        'photo' => 'required'
          ]);
 
         $member = new Member();
@@ -36,6 +37,7 @@ class MemberController extends Controller
         $member->slug = $request->input('slug');
         $member->title = $request->input('title');
         $member->body = $request->input('body');
+        $member->photo = $request->input('photo');
 
         $member->save();
         return response()->json($member, 201);
@@ -66,13 +68,15 @@ class MemberController extends Controller
       $this->validate($request, [
       'title' => 'required',
       'slug' => 'required',
-      'body' => 'required'
+      'body' => 'required',
+      'photo' => 'required'
        ]);
 
       $member = Member::find($id);
       $member->slug = $request->input('slug', $member->slug);
       $member->title = $request->input('title', $member->title);
       $member->body = $request->input('body', $member->body);
+      $member->photo = $request->input('photo', $member->photo);
       $member->save();
       return response()->json($member);
 

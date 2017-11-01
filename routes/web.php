@@ -41,3 +41,11 @@ $router->group(['prefix' => 'member/'], function ($app) {
   $app->patch('/{id}/','MemberController@update'); //update single route
   $app->delete('/{id}/','MemberController@destroy'); //delete single route
 });
+
+$router->group(['prefix' => 'state/'], function ($app) {
+  $app->get('/','StateController@index'); //get all the routes  
+  $app->post('/','StateController@store'); //store single route
+  $app->get('/{id}/', 'StateController@show'); //get single route
+  $app->patch('/{id}/','StateController@update'); //update single route
+  $app->delete('/{id}/','StateController@destroy'); //delete single route
+});

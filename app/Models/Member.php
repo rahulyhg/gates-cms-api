@@ -9,5 +9,5 @@ use Illuminate\Database\Eloquent\Model;
 final class Member extends Model  
 {
   protected $table = 'members';
-  protected $fillable = ['title','slug','body'];
+  protected $fillable = ['title','slug','body', 'photo'];
 }

@@ -2,8 +2,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Page;
-class PageController extends Controller
+use App\Models\State;
+class StateController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -12,7 +12,7 @@ class PageController extends Controller
      */
     public function index()
     {
-      return response()->json(Page::all());
+      return response()->json(State::all());
     }
 
 
@@ -28,17 +28,17 @@ class PageController extends Controller
         $this->validate($request, [
         'title' => 'required',
         'slug' => 'required',
-        'body' => 'required'
+        'abbreviation' => 'required'
          ]);
 
-        $page = new Page();
+        $state = new State();
 
-        $page->slug = $request->input('slug');
-        $page->title = $request->input('title');
-        $page->body = $request->input('body');
+        $state->slug = $request->input('slug');
+        $state->title = $request->input('title');
+        $state->abbreviation = $request->input('abbreviation');
 
-        $page->save();
-        return response()->json($page, 201);
+        $state->save();
+        return response()->json($state, 201);
     }
 
     /**
@@ -49,11 +49,7 @@ class PageController extends Controller
      */
     public function show($id)
     {
-      $page = Page::find($id);
-      if (empty($page)) {
-        $page = Page::where('slug', $id)->firstOrFail();
-      }
-      return response()->json($page);
+      return response()->json(State::with('cities')->find($id));
     }
 
 
@@ -70,15 +66,15 @@ class PageController extends Controller
       $this->validate($request, [
       'title' => 'required',
       'slug' => 'required',
-      'body' => 'required'
+      'abbreviation' => 'required'
        ]);
 
-      $page = Page::find($id);
-      $page->slug = $request->input('slug', $page->slug);
-      $page->title = $request->input('title', $page->title);
-      $page->body = $request->input('body', $page->body);
-      $page->save();
-      return response()->json($page);
+      $state = State::find($id);
+      $state->slug = $request->input('slug', $state->slug);
+      $state->abbreviation = $request->input('abbreviation', $state->abbreviation);
+      $state->title = $request->input('title', $state->title);
+      $state->save();
+      return response()->json($state);
 
     }
 
@@ -90,7 +86,7 @@ class PageController extends Controller
      */
     public function destroy($id)
     {
-      Page::find($id)->delete();
+      State::find($id)->delete();
       return response('', 200);
     }
 

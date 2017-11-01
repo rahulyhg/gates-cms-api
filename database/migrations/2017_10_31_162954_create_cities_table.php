@@ -16,10 +16,12 @@ class CreateCitiesTable extends Migration
         Schema::create('cities', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamps();
+            $table->integer('state_id');
             $table->string('slug');
             $table->string('title');
+            $table->string('photo');
             $table->text('body');
-        });
+       });
     }
 
     /**

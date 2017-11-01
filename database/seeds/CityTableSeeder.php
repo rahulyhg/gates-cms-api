@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\State;  
 use App\Models\City;  
 use Illuminate\Database\Seeder;
+use Faker\Factory as Faker;
 
 class CityTableSeeder extends Seeder
 {
@@ -12,11 +14,18 @@ class CityTableSeeder extends Seeder
      */
     public function run()
     {
-      for ($i = 1; $i < 51; $i++):
+      $faker = Faker::create();
+      $states = State::all();
+
+      for ($i = 1; $i < 201; $i++):
+        $state = $states[rand(0, count($states) - 1)];
+        $city = $faker->city;
         City::create([
-            'title' => 'Title ' . $i,
-            'slug' => 'title-' . $i,
-            'body' => $i
+            'title' => $city,
+            'slug' => str_slug($city),
+            'photo' => '/img/city-2.png',
+            'state_id' => $state->id,
+            'body' => $faker->text(500)
         ]);
       endfor;
     }
