@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 final class City extends Model  
 {
   protected $table = 'cities';
-  protected $fillable = ['title','slug','body','photo','state_id'];
+  protected $fillable = ['title','slug','body','photo','state_id', 'populationGroup', 'county'];
   /**
    * Get the phone record associated with the user.
    */

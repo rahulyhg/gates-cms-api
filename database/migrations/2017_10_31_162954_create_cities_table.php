@@ -17,6 +17,8 @@ class CreateCitiesTable extends Migration
             $table->increments('id');
             $table->timestamps();
             $table->integer('state_id');
+            $table->integer('populationGroup');
+            $table->string('county');
             $table->string('slug');
             $table->string('title');
             $table->string('photo');

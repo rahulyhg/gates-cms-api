@@ -23,8 +23,10 @@ class CityTableSeeder extends Seeder
         City::create([
             'title' => $city,
             'slug' => str_slug($city),
+            'county' => $faker->city . ' County',
             'photo' => '/img/city-2.png',
             'state_id' => $state->id,
+            'populationGroup' => rand(1,3),
             'body' => $faker->text(500)
         ]);
       endfor;
