@@ -19,7 +19,7 @@ class MemberTableSeeder extends Seeder
             'title' => $faker->name,
             'slug' => $faker->word,
             'body' => $faker->text(500),
-            'photo' => '/img/member.png'
+            'photo' => 'usl33aogxpfidj7tz0lo'
         ]);
       endfor;
     }

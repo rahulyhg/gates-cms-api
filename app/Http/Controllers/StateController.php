@@ -33,7 +33,7 @@ class StateController extends Controller
 
         $state = new State();
 
-        $state->slug = $request->input('slug');
+        $state->slug = str_slug($request->input('slug'));
         $state->title = $request->input('title');
         $state->abbreviation = $request->input('abbreviation');
 
@@ -70,7 +70,7 @@ class StateController extends Controller
        ]);
 
       $state = State::find($id);
-      $state->slug = $request->input('slug', $state->slug);
+      $state->slug = str_slug($request->input('slug', $state->slug));
       $state->abbreviation = $request->input('abbreviation', $state->abbreviation);
       $state->title = $request->input('title', $state->title);
       $state->save();

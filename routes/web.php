@@ -18,6 +18,10 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+$router->group(['prefix' => 'upload/'], function ($app) {
+  $app->post('/','MediaController@index');  
+});
+
 $router->group(['prefix' => 'page/'], function ($app) {
   $app->get('/','PageController@index'); //get all the routes  
   $app->post('/','PageController@store'); //store single route

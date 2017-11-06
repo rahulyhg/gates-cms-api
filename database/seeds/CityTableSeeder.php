@@ -24,7 +24,7 @@ class CityTableSeeder extends Seeder
             'title' => $city,
             'slug' => str_slug($city),
             'county' => $faker->city . ' County',
-            'photo' => '/img/city-2.png',
+            'photo' => 'usl33aogxpfidj7tz0lo',
             'state_id' => $state->id,
             'populationGroup' => rand(1,3),
             'body' => $faker->text(500)

@@ -33,7 +33,7 @@ class PageController extends Controller
 
         $page = new Page();
 
-        $page->slug = $request->input('slug');
+        $page->slug = str_slug($request->input('slug'));
         $page->title = $request->input('title');
         $page->body = $request->input('body');
 
@@ -74,7 +74,7 @@ class PageController extends Controller
        ]);
 
       $page = Page::find($id);
-      $page->slug = $request->input('slug', $page->slug);
+      $page->slug = str_slug($request->input('slug', $page->slug));
       $page->title = $request->input('title', $page->title);
       $page->body = $request->input('body', $page->body);
       $page->save();

@@ -37,7 +37,7 @@ class CityController extends Controller
 
         $city = new City();
 
-        $city->slug = $request->input('slug');
+        $city->slug = str_slug($request->input('slug'));
         $city->county = $request->input('county');
         $city->title = $request->input('title');
         $city->photo = $request->input('photo', $city->photo);
@@ -83,7 +83,7 @@ class CityController extends Controller
 
       $city = City::find($id);
       $city->county = $request->input('county', $city->county);
-      $city->slug = $request->input('slug', $city->slug);
+      $city->slug = str_slug($request->input('slug', $city->slug));
       $city->photo = $request->input('photo', $city->photo);
       $city->populationGroup = $request->input('populationGroup', $city->populationGroup);
       $city->state_id = $request->input('state_id', $city->state_id);
