@@ -27,7 +27,9 @@ class CityTableSeeder extends Seeder
             'photo' => 'usl33aogxpfidj7tz0lo',
             'state_id' => $state->id,
             'populationGroup' => rand(1,3),
-            'body' => $faker->text(500)
+            'body' => $faker->text(500),
+            'lat' => $faker->latitude(),
+            'long' => $faker->longitude()
         ]);
       endfor;
     }

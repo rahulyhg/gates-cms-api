@@ -23,6 +23,8 @@ class CreateCitiesTable extends Migration
             $table->string('title');
             $table->string('photo');
             $table->text('body');
+            $table->double('lat', 9, 6);
+            $table->double('long', 9, 6);
        });
     }
 

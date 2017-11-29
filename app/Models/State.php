@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 final class State extends Model  
 {
   protected $table = 'states';
-  protected $fillable = ['title','slug','abbreviation'];
+  protected $fillable = ['id', 'title','slug','abbreviation'];
 
   /**
    * Get the cities.

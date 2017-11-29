@@ -17,6 +17,8 @@ class MediaController extends Controller
         ));
         if ($request->hasFile('image')) {
             return response()->json(\Cloudinary\Uploader::upload($request->file('image')));
+        } elseif($request->hasFile('sheet')) {
+            return response()->json(\Cloudinary\Uploader::upload($request->file('sheet'), array("resource_type" => "raw")));
         }
     }
 

@@ -9,12 +9,20 @@ use Illuminate\Database\Eloquent\Model;
 final class City extends Model  
 {
   protected $table = 'cities';
-  protected $fillable = ['title','slug','body','photo','state_id', 'populationGroup', 'county'];
+  protected $fillable = ['id', 'title','slug','body','photo','state_id', 'populationGroup', 'county', 'long', 'lat'];
   /**
-   * Get the phone record associated with the user.
+   * Get the state records associated with the city.
    */
   public function state()
   {
     return $this->belongsTo('App\Models\State');
+  }
+
+  /**
+   * Get the data.
+   */
+  public function data()
+  {
+    return $this->hasMany('App\Models\Data');
   }
 }
