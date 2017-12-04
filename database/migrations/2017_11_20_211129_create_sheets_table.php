@@ -14,7 +14,7 @@ class CreateSheetsTable extends Migration
     public function up()
     {
         Schema::create('sheets', function (Blueprint $table) {
-            $table->integer('id');
+            $table->increments('id');
             $table->text('data');
             $table->text('type');
             $table->timestamps();
