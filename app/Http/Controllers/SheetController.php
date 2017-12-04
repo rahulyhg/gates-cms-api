@@ -29,12 +29,14 @@ class SheetController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-        'data' => 'required'
+        'data' => 'required',
+        'type' => 'required'
          ]);
 
         $sheet = new Sheet();
 
         $sheet->data = $request->input('data');
+        $sheet->type = $request->input('type');
 
         $sheet->save();
         return response()->json($sheet, 201);

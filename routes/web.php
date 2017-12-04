@@ -89,3 +89,11 @@ $router->group(['prefix' => 'api/v1/sheet/'], function ($app) {
   $app->get('/view/{id}/', 'SheetController@show'); //get single route
   $app->delete('/{id}/','SheetController@destroy'); //delete single route
 });
+
+$router->group(['prefix' => 'api/v1/import/', 'middleware' => 'auth'], function ($app) {  
+  $app->post('/dump','DataController@dump'); //get newest sheet
+  $app->post('/data','DataController@data'); //get newest sheet
+  $app->post('/states','DataController@states'); //get newest sheet
+  $app->post('/cities','DataController@cities'); //get newest sheet
+  $app->post('/crimes','DataController@crimes'); //get newest sheet
+});

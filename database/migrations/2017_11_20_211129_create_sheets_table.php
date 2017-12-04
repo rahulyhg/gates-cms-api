@@ -16,6 +16,7 @@ class CreateSheetsTable extends Migration
         Schema::create('sheets', function (Blueprint $table) {
             $table->increments('id');
             $table->text('data');
+            $table->text('type');
             $table->timestamps();
         });
     }

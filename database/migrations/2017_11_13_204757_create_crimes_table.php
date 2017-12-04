@@ -14,7 +14,7 @@ class CreateCrimesTable extends Migration
     public function up()
     {
         Schema::create('crimes', function (Blueprint $table) {
-            $table->increments('id');
+            $table->integer('id');
             $table->string('name');
             $table->timestamps();
         });

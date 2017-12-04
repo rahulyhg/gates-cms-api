@@ -14,15 +14,15 @@ class CreateCitiesTable extends Migration
     public function up()
     {
         Schema::create('cities', function (Blueprint $table) {
-            $table->increments('id');
+            $table->integer('id');
             $table->timestamps();
             $table->integer('state_id');
-            $table->integer('populationGroup');
+            $table->integer('populationGroup')->nullable();
             $table->string('county');
             $table->string('slug');
             $table->string('title');
-            $table->string('photo');
-            $table->text('body');
+            $table->string('photo')->nullable();
+            $table->text('body')->nullable();
             $table->double('lat', 9, 6);
             $table->double('long', 9, 6);
        });

@@ -9,5 +9,5 @@ use Illuminate\Database\Eloquent\Model;
 final class Sheet extends Model  
 {
   protected $table = 'sheets';
-  protected $fillable = ['data'];
+  protected $fillable = ['data', 'type'];
 }

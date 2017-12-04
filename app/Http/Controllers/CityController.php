@@ -62,12 +62,14 @@ class CityController extends Controller
             $query->where('datatype', '=', 1);
             $query->where('date', '>=', $begin); 
             $query->where('date', '<=', $end); 
+            $query->orderBy('date', 'asc');
           }))->get(['id']);
         } else {
           $cities = City::with(array('data' => function ($query) use ($begin, $end){
             $query->where('datatype', '=', 2); 
             $query->where('date', '>=', $begin); 
             $query->where('date', '<=', $end); 
+            $query->orderBy('date', 'asc');
           }))->get(['id']);
         }
 
@@ -80,14 +82,17 @@ class CityController extends Controller
           }
           $crimes = 0;
           $population = 0;
+          $change = 0;
           forEach($city["data"] as $data) {
             $crimes += $data["crimeCount"];
             $population += $data["population"];
+            $change += $data["crimeCount"] * 100000 / $data["population"];
           }
           $responseArray[$city["id"]][] = array(
             "population"=> floor($population / count($city["data"])),
             "crimes"=> $crimes,
-            "timespan"=> $timespan
+            "timespan"=> $timespan,
+            "change"=> round($change / count($city["data"]), 4)
           );
         }
 
