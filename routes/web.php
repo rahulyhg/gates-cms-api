@@ -45,7 +45,7 @@ $router->group(['prefix' => 'api/v1/page/', 'middleware' => 'auth'], function ($
   $app->delete('/{id}/','PageController@destroy'); //delete single route
 });
 
-$router->group(['prefix' => 'api/v1/page/', 'middleware' => 'auth'], function ($app) {
+$router->group(['prefix' => 'api/v1/page/'], function ($app) {
   $app->get('/','PageController@index'); //get all the routes  
   $app->get('/{id}/', 'PageController@show'); //get single route
 });
