@@ -83,7 +83,7 @@ class CityController extends Controller
           $crimes = 0;
           $population = 0;
           $change = 0;
-          forEach($city["data"] as $data) {
+          forEach($city["data"] as $i=>$data) {
             $crimes += $data["crimeCount"];
             $population += $data["population"];
             $change += $data["crimeCount"] * 100000 / $data["population"];
@@ -92,7 +92,7 @@ class CityController extends Controller
             "population"=> floor($population / count($city["data"])),
             "crimes"=> $crimes,
             "timespan"=> $timespan,
-            "change"=> round($change / count($city["data"]), 4)
+            "rate"=> round($change / count($city["data"]), 4)
           );
         }
 
