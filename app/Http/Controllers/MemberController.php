@@ -24,7 +24,7 @@ class MemberController extends Controller
      */
     public function store(Request $request)
     {
-
+        return response()->json($request->all(), 201);
         $this->validate($request, [
         'title' => 'required',
         'slug' => 'required',
