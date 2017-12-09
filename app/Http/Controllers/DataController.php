@@ -51,9 +51,10 @@ class DataController extends Controller
           '*.state_fips' => 'required',
           '*.place_fips' => 'required',
           '*.place_name' => 'required',
-          '*.within_county' => 'required',
+          '*.county_name' => 'required',
           '*.longitude' => 'required',
-          '*.latitude' => 'required'
+          '*.latitude' => 'required',
+          '*.population' => 'required'
          ]);
         $requests = $request->all();
 
@@ -62,12 +63,27 @@ class DataController extends Controller
 
           $city = new City();
           $city->id = $_request['id'];
-          $city->title = $_request['place_name'];
-          $city->slug = str_slug($_request['place_name']);
+          $name = $_request['place_name'];
+          $name = str_replace(' city', '', $name);
+          $name = str_replace(' metro', '', $name);
+          $name = str_replace(' government', '', $name);
+          $name = str_replace(' metropolitan', '', $name);
+          $name = str_replace(' (balance)', '', $name);
+          $name = str_replace(' municipality', '', $name);
+          $name = str_replace(' urban county', '', $name);
+          $city->title = $name;
+          $city->slug = str_slug($name);
           $city->state_id = $_request['state_fips'];
-          $city->county = $_request['within_county'];
+          $city->county = $_request['county_name'];
           $city->long = $_request['longitude'];
           $city->lat = $_request['latitude'];
+          $pop = (int) $_request['population'];
+          $city->populationGroup = $pop > 1000000 ? 3 : ($pop > 500000 ? 2 : 1);
+          // populationGroups: [
+          //   {value: 1, text: 'under 500k'},
+          //   {value: 2, text: '500k - 1M'},
+          //   {value: 3, text: 'over 1M'}
+          // ],
           $city->save();
         }
         return response()->json(null, 201);
