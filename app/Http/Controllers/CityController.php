@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\City;
+use App\Models\Data;
 class CityController extends Controller
 {
     /**
@@ -13,6 +14,19 @@ class CityController extends Controller
     public function api()
     {
       return response()->json(City::all(['id', 'title as name', 'lat', 'long']), 200, [], JSON_NUMERIC_CHECK);
+    }
+
+    public function timespan()
+    {
+      $first = Data::orderBy('date', 'ASC')->first();
+
+      // die();
+      $last = Data::orderBy('date', 'DESC')->first();
+      $spans = [
+        $first['date'],
+        $last['date']
+      ];
+      return response()->json($spans, 200, [], JSON_NUMERIC_CHECK);
     }
 
    /**
