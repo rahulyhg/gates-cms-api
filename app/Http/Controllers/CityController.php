@@ -13,7 +13,7 @@ class CityController extends Controller
      */
     public function api()
     {
-      return response()->json(City::all(['id', 'title as name', 'lat', 'long']), 200, [], JSON_NUMERIC_CHECK);
+      return response()->json(array('data'=> City::all(['id', 'title as name', 'lat', 'long'])), 200, [], JSON_NUMERIC_CHECK);
     }
 
     public function timespan()
@@ -26,7 +26,7 @@ class CityController extends Controller
         $first['date'],
         $last['date']
       ];
-      return response()->json($spans, 200, [], JSON_NUMERIC_CHECK);
+      return response()->json(array('data'=>$spans), 200, [], JSON_NUMERIC_CHECK);
     }
 
    /**
@@ -38,10 +38,9 @@ class CityController extends Controller
     {
 
       $request_timespans = $request->input('timespans', array());
-
-
+      if (count($request_timespans) == 0) $request_timespans = array($request->input('gettimespans', array()));
       if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
-
+      // if (count($request_timespans) == 1) $request_timespans = array($request_timespans)
 
       $count = 0;
       $responseArray = array();
@@ -112,8 +111,8 @@ class CityController extends Controller
 
 
       }
-
-      return response()->json($responseArray);
+      if (count($responseArray) == 0) $responseArray = null;
+      return response()->json(array('data'=>$responseArray));
     }
 
 

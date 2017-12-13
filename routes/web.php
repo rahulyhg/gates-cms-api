@@ -33,6 +33,7 @@ $router->group(['prefix' => 'api/v1/timespan/'], function ($app) {
 
 $router->group(['prefix' => 'api/v1/crimes/'], function ($app) {
   $app->post('/','CityController@crimes');
+  $app->get('/','CityController@crimes');
 });
 
 
