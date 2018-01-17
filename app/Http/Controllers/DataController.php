@@ -25,6 +25,9 @@ class DataController extends Controller
         case('Crimes'):
           Crime::truncate();
           break;
+        case('Sources'):
+          Source::truncate();
+          break;
       }
     }
 
@@ -49,13 +52,13 @@ class DataController extends Controller
     {
        $this->validate($request, [
           '*.source_descr' => 'required',
-          '*.source_type' => 'required'
+          '*.source_id' => 'required'
          ]);
         $requests = $request->all();
 
         forEach($requests as $_request) {
           $source = new Source();
-          $source->id = $_request['source_type'];
+          $source->id = $_request['source_id'];
           $source->name = $_request['source_descr'];
           $source->save();
         }
@@ -130,7 +133,8 @@ class DataController extends Controller
 
     public function data(Request $request)
     {
-
+        $requests = $request->all();
+        print_r($requests[0]);
         $this->validate($request, [
           '*.id' => 'required',
           '*.year' => 'required',

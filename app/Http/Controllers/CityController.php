@@ -42,9 +42,9 @@ class CityController extends Controller
       if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
       // if (count($request_timespans) == 1) $request_timespans = array($request_timespans)
 
+      $incompleteAllowed = filter_var($request->input('incompleteAllowed', true), FILTER_VALIDATE_BOOLEAN);
       $count = 0;
       $responseArray = array();
-
       forEach($request_timespans as $timespan) {
 
         $timespans = explode('/', $timespan);
@@ -55,7 +55,7 @@ class CityController extends Controller
         $begin = date ('Y-m-d 00:00:00', strtotime ($timespans[0]) );
         $end = date ('Y-m-d 00:00:00', strtotime ($timespans[1]) );
 
-        $yearData = filter_var($request->input('yearData'), FILTER_VALIDATE_BOOLEAN);
+        $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
         if ($yearData) {
           $begin = explode('-', $begin);
           $begin[1] = '01';
@@ -109,7 +109,15 @@ class CityController extends Controller
           );
         }
 
+      }
 
+      if (!$incompleteAllowed) {
+        $timespanCount = count($request_timespans);
+        foreach($responseArray as $city=>$timespans) {
+          if (count($timespans) != $timespanCount) {
+            unset($responseArray[$city]);
+          }
+        }
       }
       if (count($responseArray) == 0) $responseArray = null;
       return response()->json(array('data'=>$responseArray));
