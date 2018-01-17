@@ -36,6 +36,7 @@ class DataTableSeeder extends Seeder
               'population' => $pop,
               'city_id' => rand(1, 200),
               'crime_id' => $k + 1,
+              'source' => 1,
               'crimeCount' => $crimeCount,
               'per100k' => $per100
             ]);

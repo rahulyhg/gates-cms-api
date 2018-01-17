@@ -5,6 +5,7 @@ use App\Models\Data;
 use App\Models\State;
 use App\Models\City;
 use App\Models\Crime;
+use App\Models\Source;
 class DataController extends Controller
 { 
 
@@ -40,6 +41,23 @@ class DataController extends Controller
           $crime->id = $_request['crime_type'];
           $crime->name = $_request['crime_descr'];
           $crime->save();
+        }
+        return response()->json(null, 201);
+    }
+
+    public function sources (Request $request)
+    {
+       $this->validate($request, [
+          '*.source_descr' => 'required',
+          '*.source_type' => 'required'
+         ]);
+        $requests = $request->all();
+
+        forEach($requests as $_request) {
+          $source = new Source();
+          $source->id = $_request['source_type'];
+          $source->name = $_request['source_descr'];
+          $source->save();
         }
         return response()->json(null, 201);
     }
@@ -119,6 +137,7 @@ class DataController extends Controller
           '*.month' => 'required',
           '*.population_est' => 'required',
           '*.crime_count' => 'required',
+          '*.source_id' => 'required',
           '*.crime_type' => 'required'
          ]);
         $requests = $request->all();
@@ -142,6 +161,7 @@ class DataController extends Controller
           $data->date = $date;
 
           $data->city_id = $_request['id'];
+          $data->source_id = $_request['source_id'];
           $data->crime_id = $_request['crime_type'];
           $data->crimeCount = $_request['crime_count'];
 

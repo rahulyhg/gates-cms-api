@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 final class Data extends Model  
 {
   protected $table = 'data';
-  protected $fillable = ['id', 'date', 'datatype', 'city_id', 'crime_id', 'crimeCount', 'per100k', 'population'];
+  protected $fillable = ['id', 'date', 'datatype', 'city_id', 'crime_id', 'source_id', 'crimeCount', 'per100k', 'population'];
   
   /**
   * Get the city records associated with the data.

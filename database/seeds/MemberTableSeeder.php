@@ -15,12 +15,12 @@ class MemberTableSeeder extends Seeder
     {
       $faker = Faker::create();
       for ($i = 1; $i < 16; $i++):
-        Member::create([
-            'title' => $faker->name,
-            'slug' => $faker->word,
-            'body' => $faker->text(500),
-            'photo' => 'usl33aogxpfidj7tz0lo'
-        ]);
+        // Member::create([
+        //     'title' => $faker->name,
+        //     'slug' => $faker->word,
+        //     'body' => $faker->text(500),
+        //     'photo' => 'usl33aogxpfidj7tz0lo'
+        // ]);
       endfor;
     }
 }
