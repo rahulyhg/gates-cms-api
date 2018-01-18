@@ -81,9 +81,9 @@ class CityController extends Controller
         } else {
           $cities = City::with(array('data' => function ($query) use ($begin, $end){
             $query->where('datatype', '=', 2); 
-            // $query->where('date', '>=', $begin); 
-            // $query->where('date', '<=', $end); 
-            $query->whereBetween('date', array($begin, $end));
+            $query->where('date', '>=', 'DATE('.$begin.')'); 
+            $query->where('date', '<=', 'DATE('.$end.')'); 
+            // $query->whereBetween('date', array('DATE('.$begin.')', 'DATE('.$end.')'));
             $query->orderBy('date', 'asc');
           }))->get(['id']);
         }
