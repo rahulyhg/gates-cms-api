@@ -85,7 +85,7 @@ class CityController extends Controller
             // $query->where('date', '<=', 'DATE('.$end.')'); 
             // $query->whereBetween('date', array('DATE('.$begin.')', 'DATE('.$end.')'));
             $query->where('date', '>=', $begin); 
-            $query->where('date', '<=', $end); 
+            $query->where('date', '<', $end); 
             // $query->whereBetween('date', array($begin, $end);
             $query->orderBy('date', 'asc');
           }))->get(['id']);
@@ -94,8 +94,8 @@ class CityController extends Controller
         forEach($cities->toArray() as $i => $city) {
           // $city["begin"] = $begin;
           // $city["end"] = $end;
-          // return response()->json(array('data'=>$city));
-          // if ($i > 0) continue;
+          return response()->json(array('data'=>$city));
+          if ($i > 0) continue;
           if ( count ($city["data"]) == 0) continue;
           if (!isset($responseArray[$city["id"]])) {
             $responseArray[$city["id"]] = array();
