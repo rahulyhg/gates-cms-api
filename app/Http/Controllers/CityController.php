@@ -74,15 +74,15 @@ class CityController extends Controller
         if ($yearData) {
           $cities = City::with(array('data' => function ($query) use ($begin, $end) {
             $query->where('datatype', '=', 1);
-            $query->where('date', '>=', $begin); 
-            $query->where('date', '<=', $end); 
+            $query->where('date', '>', $begin); 
+            $query->where('date', '<', $end); 
             $query->orderBy('date', 'asc');
           }))->get(['id']);
         } else {
           $cities = City::with(array('data' => function ($query) use ($begin, $end){
             $query->where('datatype', '=', 2); 
-            $query->where('date', '>=', $begin); 
-            $query->where('date', '<=', $end); 
+            $query->where('date', '>', $begin); 
+            $query->where('date', '<', $end); 
             $query->orderBy('date', 'asc');
           }))->get(['id']);
         }
