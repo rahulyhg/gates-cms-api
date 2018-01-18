@@ -40,7 +40,7 @@ class CityController extends Controller
       $request_timespans = $request->input('timespans', array());
       if (count($request_timespans) == 0) $request_timespans = array($request->input('gettimespans', array()));
       if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
-      if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
+      // if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
 
       $incompleteAllowed = filter_var($request->input('incompleteAllowed', true), FILTER_VALIDATE_BOOLEAN);
       $count = 0;
@@ -81,26 +81,17 @@ class CityController extends Controller
         } else {
           $cities = City::with(array('data' => function ($query) use ($begin, $end){
             $query->where('datatype', '=', 2); 
-            // $query->where('date', '>=', 'DATE('.$begin.')'); 
-            // $query->where('date', '<=', 'DATE('.$end.')'); 
-            // $query->whereBetween('date', array('DATE('.$begin.')', 'DATE('.$end.')'));
             $query->where('date', '>=', $begin); 
             $query->where('date', '<', $end); 
-            // $query->whereBetween('date', array($begin, $end);
             $query->orderBy('date', 'asc');
           }))->get(['id']);
         }
 
         forEach($cities->toArray() as $i => $city) {
-          // $city["begin"] = $begin;
-          // $city["end"] = $end;
-          // return response()->json(array('data'=>$city));
-          // if ($i > 0) continue;
           if ( count ($city["data"]) == 0) continue;
           if (!isset($responseArray[$city["id"]])) {
             $responseArray[$city["id"]] = array();
             $count ++;
-            // print_r("<pre>" . $count . "</pre>");
           }
           $crimes = 0;
           $population = 0;
@@ -109,14 +100,10 @@ class CityController extends Controller
             $crimes += $data["crimeCount"];
             $population += $data["population"];
             $change += ($data["crimeCount"] * 100000) / $data["population"];
-            // echo "<h4>crimes</h4><pre>";print_r($data["crimeCount"]);echo "</pre>";
-            // echo "<h4>population</h4><pre>";print_r($data["population"]);echo "</pre>";
-            // echo "<h4>rate</h4><pre>";print_r(($data["crimeCount"] * 100000) / $data["population"]);echo "</pre>";
           }
           $responseArray[$city["id"]][] = array(
             "population"=> floor($population / count($city["data"])),
             "crimes"=> $crimes,
-            // "averageCrimes"=> round($crimes / count($city["data"]), 4),
             "timespan"=> $timespan,
             "rate"=> round($change / count($city["data"]), 4)
           );
