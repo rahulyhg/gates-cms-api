@@ -134,7 +134,7 @@ class DataController extends Controller
     public function data(Request $request)
     {
         $requests = $request->all();
-        print_r($requests[0]);
+
         $this->validate($request, [
           '*.id' => 'required',
           '*.year' => 'required',
@@ -172,7 +172,7 @@ class DataController extends Controller
           $pop = $_request['population_est'];
           $data->population = $pop;
 
-          $per100 = round(1000000 / $pop, 2);
+          $per100 = round($pop / 100000, 2);
           $data->per100k = $per100;
 
           $data->save();

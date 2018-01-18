@@ -40,11 +40,12 @@ class CityController extends Controller
       $request_timespans = $request->input('timespans', array());
       if (count($request_timespans) == 0) $request_timespans = array($request->input('gettimespans', array()));
       if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
-      // if (count($request_timespans) == 1) $request_timespans = array($request_timespans)
+      if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
 
       $incompleteAllowed = filter_var($request->input('incompleteAllowed', true), FILTER_VALIDATE_BOOLEAN);
       $count = 0;
       $responseArray = array();
+      // print_r($request_timespans);
       forEach($request_timespans as $timespan) {
 
         $timespans = explode('/', $timespan);
@@ -86,7 +87,9 @@ class CityController extends Controller
           }))->get(['id']);
         }
 
-        forEach($cities->toArray() as $city) {
+        forEach($cities->toArray() as $i => $city) {
+          return response()->json(array('data'=>$city));
+          if ($i > 0) continue;
           if ( count ($city["data"]) == 0) continue;
           if (!isset($responseArray[$city["id"]])) {
             $responseArray[$city["id"]] = array();
@@ -99,16 +102,19 @@ class CityController extends Controller
           forEach($city["data"] as $i=>$data) {
             $crimes += $data["crimeCount"];
             $population += $data["population"];
-            $change += $data["crimeCount"] * 100000 / $data["population"];
+            $change += ($data["crimeCount"] * 100000) / $data["population"];
+            // echo "<h4>crimes</h4><pre>";print_r($data["crimeCount"]);echo "</pre>";
+            // echo "<h4>population</h4><pre>";print_r($data["population"]);echo "</pre>";
+            // echo "<h4>rate</h4><pre>";print_r(($data["crimeCount"] * 100000) / $data["population"]);echo "</pre>";
           }
           $responseArray[$city["id"]][] = array(
             "population"=> floor($population / count($city["data"])),
             "crimes"=> $crimes,
+            "averageCrimes"=> round($crimes / count($city["data"]), 4),
             "timespan"=> $timespan,
             "rate"=> round($change / count($city["data"]), 4)
           );
         }
-
       }
 
       if (!$incompleteAllowed) {
@@ -119,6 +125,7 @@ class CityController extends Controller
           }
         }
       }
+
       if (count($responseArray) == 0) $responseArray = null;
       return response()->json(array('data'=>$responseArray));
     }
