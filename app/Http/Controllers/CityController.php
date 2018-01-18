@@ -75,7 +75,7 @@ class CityController extends Controller
           $cities = City::with(array('data' => function ($query) use ($begin, $end) {
             $query->where('datatype', '=', 1);
             $query->where('date', '>=', $begin); 
-            $query->where('date', '<=', $end); 
+            $query->where('date', '<', $end); 
             $query->orderBy('date', 'asc');
           }))->get(['id']);
         } else {
@@ -94,8 +94,8 @@ class CityController extends Controller
         forEach($cities->toArray() as $i => $city) {
           // $city["begin"] = $begin;
           // $city["end"] = $end;
-          return response()->json(array('data'=>$city));
-          if ($i > 0) continue;
+          // return response()->json(array('data'=>$city));
+          // if ($i > 0) continue;
           if ( count ($city["data"]) == 0) continue;
           if (!isset($responseArray[$city["id"]])) {
             $responseArray[$city["id"]] = array();
