@@ -92,10 +92,10 @@ class CityController extends Controller
         }
 
         forEach($cities->toArray() as $i => $city) {
-          $city["begin"] = $begin;
-          $city["end"] = $end;
-          return response()->json(array('data'=>$city));
-          if ($i > 0) continue;
+          // $city["begin"] = $begin;
+          // $city["end"] = $end;
+          // return response()->json(array('data'=>$city));
+          // if ($i > 0) continue;
           if ( count ($city["data"]) == 0) continue;
           if (!isset($responseArray[$city["id"]])) {
             $responseArray[$city["id"]] = array();
@@ -116,7 +116,7 @@ class CityController extends Controller
           $responseArray[$city["id"]][] = array(
             "population"=> floor($population / count($city["data"])),
             "crimes"=> $crimes,
-            "averageCrimes"=> round($crimes / count($city["data"]), 4),
+            // "averageCrimes"=> round($crimes / count($city["data"]), 4),
             "timespan"=> $timespan,
             "rate"=> round($change / count($city["data"]), 4)
           );
