@@ -57,17 +57,17 @@ class CityController extends Controller
         $end = date ('Y-m-d 00:00:00', strtotime ($timespans[1]) );
 
         $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
-        if ($yearData) {
-          $begin = explode('-', $begin);
-          $begin[1] = '01';
-          $begin[2] = '01';
-          $begin = implode('-', $begin);
+        // if ($yearData) {
+        //   $begin = explode('-', $begin);
+        //   $begin[1] = '01';
+        //   $begin[2] = '01 00:00:00';
+        //   $begin = implode('-', $begin);
 
-          $end = explode('-', $end);
-          $end[1] = '01';
-          $end[2] = '01';
-          $end = implode('-', $end);
-        }
+        //   $end = explode('-', $end);
+        //   $end[1] = '01';
+        //   $end[2] = '01 00:00:00';
+        //   $end = implode('-', $end);
+        // }
 
         // $cities = City::with('data')->get(['id']);
 
@@ -86,7 +86,6 @@ class CityController extends Controller
             $query->orderBy('date', 'asc');
           }))->get(['id']);
         }
-
         forEach($cities->toArray() as $i => $city) {
           if ( count ($city["data"]) == 0) continue;
           if (!isset($responseArray[$city["id"]])) {
@@ -109,7 +108,6 @@ class CityController extends Controller
           );
         }
       }
-
       if (!$incompleteAllowed) {
         $timespanCount = count($request_timespans);
         foreach($responseArray as $city=>$timespans) {
