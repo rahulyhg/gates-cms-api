@@ -23,9 +23,12 @@ class CorsMiddleware {
         }
 
         $response = $next($request);
-        foreach($headers as $key => $value)
+        if ($request->path() != "api/v1/export")
         {
-            $response->header($key, $value);
+            foreach($headers as $key => $value)
+            {
+                $response->header($key, $value);
+            } 
         }
 
         return $response;

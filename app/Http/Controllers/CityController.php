@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\City;
 use App\Models\Data;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 class CityController extends Controller
 {
     /**
@@ -95,7 +96,28 @@ class CityController extends Controller
         $data = array_map($mapping, $data);
         $responseArray = array_merge($responseArray, $data);
       }
-      return response()->json(array('data'=>$responseArray));
+      array_unshift($data, array_keys($data[0]));
+
+      $headers = [
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
+        ,   'Content-type'        => 'text/csv'
+        ,   'Content-Disposition' => 'attachment; filename=export.csv'
+        ,   'Expires'             => '0'
+        ,   'Pragma'              => 'public'
+      ];
+      $callback = function() use ($data) {
+        $FH = fopen('php://output', 'w');
+        foreach ($data as $row) { 
+            fputcsv($FH, $row);
+        }
+        fclose($FH);
+      };
+
+      $response = new StreamedResponse($callback, 200, $headers);
+
+      return $response;
+      // return response()->stream($callback, 200, $headers);
+      // return response()->json(array('data'=>$responseArray));
     }
 
    /**
