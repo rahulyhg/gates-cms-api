@@ -26,4 +26,11 @@ final class Data extends Model
   {
     return $this->belongsTo('App\Models\Crime');
   }
+  /**
+  * Get the crime records associated with the data.
+  */
+  public function source()
+  {
+    return $this->belongsTo('App\Models\Source');
+  }
 }

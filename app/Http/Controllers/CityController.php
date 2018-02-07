@@ -30,6 +30,75 @@ class CityController extends Controller
     }
 
    /**
+     * exporting.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function export(Request $request)
+    {
+
+      $request_timespans = $request->input('timespans', array());
+      if (count($request_timespans) == 0) $request_timespans = array($request->input('gettimespans', array()));
+      if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
+      // if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
+
+      $count = 0;
+      $responseArray = array();
+      forEach($request_timespans as $timespan) {
+        $timespans = explode('/', $timespan);
+        if (count($timespans) != 2) return response('Invalid Time Format - 2', 400);
+
+        //YYYY-MM-DDT13:00:00Z/YYYY-MM-DDT15:30:00Z
+
+        $begin = date ('Y-m-d 00:00:00', strtotime ($timespans[0]) );
+        $end = date ('Y-m-d 00:00:00', strtotime ($timespans[1]) );
+
+        $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
+
+        // $cities = City::with(array('data' => function ($query) use ($begin, $end) {
+        //   $query->where('datatype', '=', 1);
+        //   $query->where('date', '>=', $begin); 
+        //   $query->where('date', '<=', $end); 
+        //   $query->orderBy('date', 'asc');
+        // }, 'state'))->get(['county', 'id', 'title', 'state_id']);
+
+        // $data = Data::with('city', 'state')
+        $data = Data::where('datatype', '=', $yearData ? 1 : 2)
+          ->where('date', '>=', $begin)
+          ->where('date', '<=', $end)
+          ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
+          ->orderBy('date', 'asc')
+          ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
+        $data = $data->toArray();
+        $mapping = function ($value) use ($request_timespans, $begin, $end, $yearData) {
+          $newVal = [];
+          if (count($request_timespans) > 1) {
+            $b = explode(' ', $begin);
+            $e = explode(' ', $end);
+            $newVal['timespan'] = $b[0]." to ".$e[0];
+          }
+          $newVal['id'] = $value['city']['id'];
+          $newVal['year'] = date ('Y', strtotime ($value['date']) );
+          if (!$yearData) {
+            $newVal['month'] = date ('m', strtotime ($value['date']) );
+          }
+          $newVal['state_abr'] = $value['city']['state']['abbreviation'];
+          $newVal['county_name'] = $value['city']['county'];
+          $newVal['place_name'] = $value['city']['title'];
+          $newVal['population_est'] = $value['population'];
+          $newVal['crime_type'] = $value['crime']['name'];
+          $newVal['crime_count'] = $value['crimeCount'];
+          $newVal['crime_rate_per_100k'] = $value['per100k'];
+          $newVal['source_desc'] = $value['source']['name'];
+          return $newVal;
+        };
+        $data = array_map($mapping, $data);
+        $responseArray = array_merge($responseArray, $data);
+      }
+      return response()->json(array('data'=>$responseArray));
+    }
+
+   /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response

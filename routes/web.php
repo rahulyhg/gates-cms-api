@@ -20,6 +20,11 @@ $router->get('/', function () use ($router) {
 });
 
 
+$router->group(['prefix' => 'api/v1/export/'], function ($app) {
+  $app->post('/','CityController@export'); //get all the timespan  
+  $app->get('/','CityController@export'); //get all the timespan  
+});
+
 
 $router->group(['prefix' => 'api/v1/cities/'], function ($app) {
   $app->get('/','CityController@api'); //get all the cities  
@@ -28,6 +33,7 @@ $router->group(['prefix' => 'api/v1/cities/'], function ($app) {
 $router->group(['prefix' => 'api/v1/timespan/'], function ($app) {
   $app->get('/','CityController@timespan'); //get all the timespan  
 });
+
 
 
 
