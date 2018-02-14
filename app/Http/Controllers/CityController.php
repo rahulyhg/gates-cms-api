@@ -96,14 +96,18 @@ class CityController extends Controller
         $data = array_map($mapping, $data);
         $responseArray = array_merge($responseArray, $data);
       }
-      array_unshift($data, array_keys($data[0]));
+      if (count($data) > 0) {
+        array_unshift($data, array_keys($data[0]));
+      }
 
       $headers = [
             'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
         ,   'Content-type'        => 'text/csv'
         ,   'Content-Disposition' => 'attachment; filename=export.csv'
         ,   'Expires'             => '0'
-        ,   'Pragma'              => 'public'
+        ,   'Pragma'              => 'public',
+        'Access-Control-Allow-Origin'      => '*'
+
       ];
       $callback = function() use ($data) {
         $FH = fopen('php://output', 'w');
