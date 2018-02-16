@@ -71,6 +71,7 @@ class CityController extends Controller
           ->orderBy('date', 'asc')
           ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
         $data = $data->toArray();
+        $count += count($data);
         $mapping = function ($value) use ($request_timespans, $begin, $end, $yearData) {
           $newVal = [];
           if (count($request_timespans) > 1) {
@@ -96,9 +97,10 @@ class CityController extends Controller
         $data = array_map($mapping, $data);
         $responseArray = array_merge($responseArray, $data);
       }
-      if (count($data) > 0) {
-        array_unshift($data, array_keys($data[0]));
+      if (count($responseArray) > 0) {
+        array_unshift($responseArray, array_keys($responseArray[0]));
       }
+      $responseArray[0][] = $count;
 
       $headers = [
             'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
@@ -109,9 +111,9 @@ class CityController extends Controller
         'Access-Control-Allow-Origin'      => '*'
 
       ];
-      $callback = function() use ($data) {
+      $callback = function() use ($responseArray) {
         $FH = fopen('php://output', 'w');
-        foreach ($data as $row) { 
+        foreach ($responseArray as $row) { 
             fputcsv($FH, $row);
         }
         fclose($FH);
