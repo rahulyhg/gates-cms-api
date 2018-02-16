@@ -100,7 +100,6 @@ class CityController extends Controller
       if (count($responseArray) > 0) {
         array_unshift($responseArray, array_keys($responseArray[0]));
       }
-      $responseArray[0][] = $count;
 
       $headers = [
             'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
