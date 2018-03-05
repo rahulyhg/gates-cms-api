@@ -98,7 +98,7 @@ class DataController extends Controller
           $city->county = $_request['county_name'];
           $city->long = $_request['longitude'];
           $city->lat = $_request['latitude'];
-          $city->body = isset($_request['notes']) ? $_request['notes'] : '';
+          $city->body = isset($_request['methodology']) ? $_request['methodology'] : '';
           $pop = (int) $_request['population'];
           $city->populationGroup = $pop > 1000000 ? 3 : ($pop > 500000 ? 2 : 1);
           // populationGroups: [

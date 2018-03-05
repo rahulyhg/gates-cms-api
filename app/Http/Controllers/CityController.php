@@ -14,7 +14,8 @@ class CityController extends Controller
      */
     public function api()
     {
-      return response()->json(array('data'=> City::all(['id', 'title as name', 'lat', 'long'])), 200, [], JSON_NUMERIC_CHECK);
+      $cities = City::with('state')->get(['id', 'title as name', 'lat', 'long', 'state_id']);
+      return response()->json(array('data'=> $cities), 200, [], JSON_NUMERIC_CHECK);
     }
 
     public function timespan()
@@ -24,8 +25,8 @@ class CityController extends Controller
       // die();
       $last = Data::orderBy('date', 'DESC')->first();
       $spans = [
-        $first['date'],
-        $last['date']
+        $first['date']."T00:00:00Z",
+        $last['date']."T00:00:00Z"
       ];
       return response()->json(array('data'=>$spans), 200, [], JSON_NUMERIC_CHECK);
     }
@@ -77,7 +78,7 @@ class CityController extends Controller
           if (count($request_timespans) > 1) {
             $b = explode(' ', $begin);
             $e = explode(' ', $end);
-            $newVal['timespan'] = $b[0]." to ".$e[0];
+            $newVal['timespan'] = $b[0]."T00:00:00Z/".$e[0]."T00:00:00Z";
           }
           $newVal['id'] = $value['city']['id'];
           $newVal['year'] = date ('Y', strtotime ($value['date']) );
