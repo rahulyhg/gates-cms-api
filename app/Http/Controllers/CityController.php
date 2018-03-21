@@ -231,7 +231,7 @@ class CityController extends Controller
             "population"=> floor($population / count($city["data"])),
             "crimes"=> $crimes,
             "timespan"=> $timespan,
-            "rate"=> round($change / count($city["data"]), 4)
+            "rate"=> round(($change / count($city["data"]) * 12), 4)
           );
         }
       }
