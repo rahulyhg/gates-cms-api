@@ -5,6 +5,10 @@ use Illuminate\Http\Request;
 use App\Models\City;
 use App\Models\Data;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Config;
+
 class CityController extends Controller
 {
     /**
@@ -44,10 +48,14 @@ class CityController extends Controller
       if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
       // if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
 
+      $city_ids = $request->input('cityIds', array());
+
+      $format = $request->input('format', 'csv');
+
       $count = 0;
       $responseArray = array();
       forEach($request_timespans as $timespan) {
-        $timespans = explode('/', $timespan);
+        $timespans = gettype($timespan) == "array" ? $timespan : explode('/', $timespan);
         if (count($timespans) != 2) return response('Invalid Time Format - 2', 400);
 
         //YYYY-MM-DDT13:00:00Z/YYYY-MM-DDT15:30:00Z
@@ -65,12 +73,22 @@ class CityController extends Controller
         // }, 'state'))->get(['county', 'id', 'title', 'state_id']);
 
         // $data = Data::with('city', 'state')
-        $data = Data::where('datatype', '=', $yearData ? 1 : 2)
+        $data = count($city_ids) > 0 ? Data::where('datatype', '=', $yearData ? 1 : 2)
+          ->where('date', '>=', $begin)
+          ->where('date', '<=', $end)
+          ->whereIn('city_id', $city_ids)
+          ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
+          ->orderBy('date', 'asc')
+          ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id'])
+        :
+          Data::where('datatype', '=', $yearData ? 1 : 2)
           ->where('date', '>=', $begin)
           ->where('date', '<=', $end)
           ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
           ->orderBy('date', 'asc')
           ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
+
+
         $data = $data->toArray();
         $count += count($data);
         $mapping = function ($value) use ($request_timespans, $begin, $end, $yearData) {
@@ -98,32 +116,44 @@ class CityController extends Controller
         $data = array_map($mapping, $data);
         $responseArray = array_merge($responseArray, $data);
       }
-      if (count($responseArray) > 0) {
-        array_unshift($responseArray, array_keys($responseArray[0]));
-      }
 
-      $headers = [
-            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
-        ,   'Content-type'        => 'text/csv'
-        ,   'Content-Disposition' => 'attachment; filename=export.csv'
-        ,   'Expires'             => '0'
-        ,   'Pragma'              => 'public',
-        'Access-Control-Allow-Origin'      => '*'
+      if ($format == 'xlsx'):
+        Excel::create('Laravel Excel', function($excel) use ($responseArray) {
+            $excel->sheet('Excel sheet', function($sheet) use ($responseArray) {
 
-      ];
-      $callback = function() use ($responseArray) {
-        $FH = fopen('php://output', 'w');
-        foreach ($responseArray as $row) { 
-            fputcsv($FH, $row);
+                $sheet->setOrientation('landscape');
+                $sheet->fromArray($responseArray);
+
+            });
+        })->export('xls');
+        // return response()->json(array('data'=>$responseArray));
+      else:
+        if (count($responseArray) > 0) {
+          array_unshift($responseArray, array_keys($responseArray[0]));
         }
-        fclose($FH);
-      };
+        $headers = [
+              'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
+          ,   'Content-type'        => 'text/csv'
+          ,   'Content-Disposition' => 'attachment; filename=export.csv'
+          ,   'Expires'             => '0'
+          ,   'Pragma'              => 'public',
+          'Access-Control-Allow-Origin'      => '*'
 
-      $response = new StreamedResponse($callback, 200, $headers);
+        ];
+        $callback = function() use ($responseArray) {
+          $FH = fopen('php://output', 'w');
+          foreach ($responseArray as $row) { 
+              fputcsv($FH, $row, "\t");
+          }
+          fclose($FH);
+        };
 
-      return $response;
-      // return response()->stream($callback, 200, $headers);
-      // return response()->json(array('data'=>$responseArray));
+        $response = new StreamedResponse($callback, 200, $headers);
+
+        return $response;
+        // return response()->stream($callback, 200, $headers);
+        // return response()->json(array('data'=>$responseArray));
+      endif;
     }
 
    /**
