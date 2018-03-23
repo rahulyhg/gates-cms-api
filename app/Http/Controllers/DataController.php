@@ -153,12 +153,12 @@ class DataController extends Controller
           $data = new Data();
           
           $month = $_request['month'];
-          print_r($month);
+          // print_r($month);
           $datatype = (int) $month === 0 ? 1 : 2;  // 1 = yearly, 2 = monthly
-          print_r($datatype);
+          // print_r($datatype);
           $data->datatype = $datatype;
 
-          $month = $month === 0 ? 1 : $month;
+          $month = $month === '0' ? '1' : $month;
 
           $year = $_request['year'];
           $date = date ('Y-m-d', strtotime($month . '/1/' . $year . ' 00:00:00') );
