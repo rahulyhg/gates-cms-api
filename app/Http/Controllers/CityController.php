@@ -117,7 +117,16 @@ class CityController extends Controller
         $responseArray = array_merge($responseArray, $data);
       }
 
+      $headers = [
+              'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
+          ,   'Expires'             => '0'
+          ,   'Pragma'              => 'public',
+          'Access-Control-Allow-Origin'      => '*'
+        ];
+
       if ($format == 'xlsx'):
+        $headers['Content-type'] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        $headers['Content-Disposition'] = "attachment; filename=export.xlsx";
         Excel::create('Laravel Excel', function($excel) use ($responseArray) {
             $excel->sheet('Excel sheet', function($sheet) use ($responseArray) {
 
@@ -125,25 +134,20 @@ class CityController extends Controller
                 $sheet->fromArray($responseArray);
 
             });
-        })->export('xls');
+        })->download('xls', $headers);
         // return response()->json(array('data'=>$responseArray));
       else:
+        $headers['Content-type'] = "text/csv";
+        $headers['Content-Disposition'] = "attachment; filename=export.csv";
+
         if (count($responseArray) > 0) {
           array_unshift($responseArray, array_keys($responseArray[0]));
         }
-        $headers = [
-              'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
-          ,   'Content-type'        => 'text/csv'
-          ,   'Content-Disposition' => 'attachment; filename=export.csv'
-          ,   'Expires'             => '0'
-          ,   'Pragma'              => 'public',
-          'Access-Control-Allow-Origin'      => '*'
-
-        ];
+        
         $callback = function() use ($responseArray) {
           $FH = fopen('php://output', 'w');
           foreach ($responseArray as $row) { 
-              fputcsv($FH, $row, "\t");
+              fputcsv($FH, $row);
           }
           fclose($FH);
         };
