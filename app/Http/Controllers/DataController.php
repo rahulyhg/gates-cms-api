@@ -6,6 +6,8 @@ use App\Models\State;
 use App\Models\City;
 use App\Models\Crime;
 use App\Models\Source;
+use App\Models\Media;
+
 class DataController extends Controller
 { 
 
@@ -79,10 +81,21 @@ class DataController extends Controller
          ]);
         $requests = $request->all();
 
+
         forEach($requests as $_request) {
           //  protected $fillable = ['id', 'title','slug','body','photo','state_id', 'populationGroup', 'county', 'long', 'lat'];
 
+
+          $media = Media::where('city_id', $_request['id'])
+          ->orderBy('created_at', 'desc')
+          ->first();
+
           $city = new City();
+
+          if ($media) {
+            $city->photo = $media->cloudinary;
+          }
+
           $city->id = $_request['id'];
           $name = $_request['place_name'];
           $name = str_replace(' city', '', $name);

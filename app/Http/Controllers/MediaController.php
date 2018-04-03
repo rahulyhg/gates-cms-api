@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Vendor\Cloudinary;
+use App\Models\Media;
 
 class MediaController extends Controller
 {
@@ -16,9 +17,26 @@ class MediaController extends Controller
         "api_secret" => env('CLOUD_API_SECRET')
         ));
         if ($request->hasFile('image')) {
-            return response()->json(\Cloudinary\Uploader::upload($request->file('image')));
+
+            $cloudinary_id = \Cloudinary\Uploader::upload($request->file('image'));
+
+            $media = new Media();
+            $media->name = 'image';
+            $media->cloudinary = $cloudinary_id['public_id'];
+            $media->city_id = 0;
+            $media->save();
+
+            return response()->json($cloudinary_id);
         } elseif($request->hasFile('sheet')) {
-            return response()->json(\Cloudinary\Uploader::upload($request->file('sheet'), array("resource_type" => "raw")));
+            $cloudinary_id = \Cloudinary\Uploader::upload($request->file('sheet'), array("resource_type" => "raw"));
+
+            $media = new Media();
+            $media->name = 'csv';
+            $media->cloudinary = $cloudinary_id['public_id'];
+            $media->city_id = 0;
+            $media->save();
+
+            return response()->json($cloudinary_id);
         }
     }
 

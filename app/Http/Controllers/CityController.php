@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\City;
 use App\Models\Data;
+use App\Models\Media;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Response;
@@ -343,6 +344,10 @@ class CityController extends Controller
       $city->county = $request->input('county', $city->county);
       $city->slug = str_slug($request->input('slug', $city->slug));
       $city->photo = $request->input('photo', $city->photo);
+      if ($city->photo) {
+          $media = Media::where('cloudinary', $city->photo)
+          ->update(['city_id'=> $id]);
+      }
       $city->populationGroup = $request->input('populationGroup', $city->populationGroup);
       $city->state_id = $request->input('state_id', $city->state_id);
       $city->title = $request->input('title', $city->title);
