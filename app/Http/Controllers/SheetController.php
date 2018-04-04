@@ -8,6 +8,15 @@ class SheetController extends Controller
 {
 
 
+    public function metadata()
+    {
+        $metadata = Sheet::where('type', 'Metadata')
+        ->orderBy('created_at', 'desc')
+        ->firstOrFail();
+
+        return redirect()->to("https://res.cloudinary.com/gates/raw/upload/" . $metadata->data);
+        // return response()->download("https://res.cloudinary.com/gates/raw/upload/" . $metadata->data);
+    }
 
     /**
      * Display a listing of the resource.

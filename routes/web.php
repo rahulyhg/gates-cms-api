@@ -43,6 +43,11 @@ $router->group(['prefix' => 'api/v1/crimes/'], function ($app) {
 });
 
 
+$router->group(['prefix' => 'api/v1/metadata/'], function ($app) {
+  $app->get('/','SheetController@metadata');
+});
+
+
 
 
 
