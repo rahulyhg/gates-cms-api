@@ -181,12 +181,15 @@ class DataController extends Controller
           $data->city_id = $_request['id'];
           $data->source_id = $_request['source_id'];
           $data->crime_id = $_request['crime_type'];
-          $data->crimeCount = $_request['crime_count'];
+
+          $crimeCount = ($datatype === 1 ? 1 : 12) * $_request['crime_count'];
+          $data->crimeCount = $crimeCount;
 
           $pop = $_request['population_est'];
           $data->population = $pop;
 
-          $per100 = round($pop / 100000, 2);
+          // $per100 = round($pop / 100000, 2);
+          $per100 = round( $crimeCount / $pop, 2 );
           $data->per100k = $per100;
 
           $data->save();
