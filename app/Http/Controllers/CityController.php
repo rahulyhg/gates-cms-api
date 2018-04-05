@@ -110,7 +110,7 @@ class CityController extends Controller
           $newVal['population_est'] = $value['population'];
           $newVal['crime_type'] = $value['crime']['name'];
           $newVal['crime_count'] = $value['crimeCount'];
-          $newVal['crime_rate_per_100k'] = $value['per100k'];
+          $newVal['annualized_rate_per_100k'] = $value['per100k'];
           $newVal['source_desc'] = $value['source']['name'];
           return $newVal;
         };
@@ -236,7 +236,7 @@ class CityController extends Controller
             "population"=> floor($population / count($city["data"])),
             "crimes"=> $crimes,
             "timespan"=> $timespan,
-            "rate"=> round(($change / count($city["data"])), 4)
+            "rate"=> round(($change / count($city["data"]) * ($yearData ? 1 : 12)), 4)
           );
         }
       }
