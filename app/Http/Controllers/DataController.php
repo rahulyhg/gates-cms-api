@@ -189,7 +189,7 @@ class DataController extends Controller
           $data->population = $pop;
 
           // $per100 = round($pop / 100000, 2);
-          $per100 = round( $crimeCount / $pop, 2 );
+          $per100 = round( $crimeCount / $pop / 100000, 2 );
           $data->per100k = $per100;
 
           $data->save();
