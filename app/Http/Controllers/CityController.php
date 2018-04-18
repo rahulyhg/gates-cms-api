@@ -210,8 +210,9 @@ class CityController extends Controller
 
         if ($yearData) {
           $years = $begin->diff($end)->y;
+          // return response()->json(array('data'=>$years));
           $cityPerYear = [];
-          for ($i = 0; $i < $years; $i++) {
+          for ($i = 0; $i <= $years; $i++) {
             $_begin = clone $begin;
             $_begin->add(new \DateInterval('P'.$i.'Y'));
             $_end = clone $begin;
