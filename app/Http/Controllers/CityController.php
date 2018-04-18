@@ -185,8 +185,13 @@ class CityController extends Controller
 
         //2007-10-01T13:00:00Z/2008-05-11T15:30:00Z
 
+
         $begin = date ('Y-m-d 00:00:00', strtotime ($timespans[0]) );
         $end = date ('Y-m-d 00:00:00', strtotime ($timespans[1]) );
+       
+        $begin = new \DateTime($begin);
+        $end = new \DateTime($end);
+
 
         $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
         // if ($yearData) {
@@ -204,21 +209,69 @@ class CityController extends Controller
         // $cities = City::with('data')->get(['id']);
 
         if ($yearData) {
-          $cities = City::with(array('data' => function ($query) use ($begin, $end) {
-            $query->where('datatype', '=', 1);
-            $query->where('date', '>=', $begin); 
-            $query->where('date', '<=', $end); 
-            $query->orderBy('date', 'asc');
-          }))->get(['id']);
+          $years = $begin->diff($end)->y;
+          $cityPerYear = [];
+          for ($i = 0; $i < $years; $i++) {
+            $_begin = clone $begin;
+            $_begin->add(new \DateInterval('P'.$i.'Y'));
+            $_end = clone $begin;
+            $_end->add(new \DateInterval('P'.($i + 1).'Y'));
+
+            $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
+              $query->where('datatype', '=', 1);
+              $query->where('date', '>=', $_begin->format('Y-m-d')); 
+              $query->where('date', '<', $_end->format('Y-m-d')); 
+              $query->orderBy('date', 'asc');
+            }))->get(['id']);
+            $cityPerYear[] = $cities->toArray();
+          }
+          $incompleteCities = [];
+          $cities = [];
+          forEach($cityPerYear as $_cities) {
+            forEach($_cities as $city) {
+              if (count($city["data"]) === 0) $incompleteCities[$city["id"]] = true;
+              if(!isset($cities[$city["id"]])) {
+                $cities[$city["id"]] = $city;
+                $cities[$city["id"]]["data"] = [];
+              }
+              $cities[$city["id"]]["data"] = array_merge($cities[$city["id"]]["data"], $city["data"]);
+            }
+          }
+          $incompleteCities = array_keys($incompleteCities);
         } else {
-          $cities = City::with(array('data' => function ($query) use ($begin, $end){
-            $query->where('datatype', '=', 2); 
-            $query->where('date', '>=', $begin); 
-            $query->where('date', '<=', $end); 
-            $query->orderBy('date', 'asc');
-          }))->get(['id']);
+
+          $months = $begin->diff($end)->m + ($begin->diff($end)->y*12);
+          $cityPerMonth = [];
+          for ($i = 0; $i <= $months; $i++) {
+            $_begin = clone $begin;
+            $_begin->add(new \DateInterval('P'.$i.'M'));
+            $_end = clone $begin;
+            $_end->add(new \DateInterval('P'.($i + 1).'M'));
+
+            $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
+              $query->where('datatype', '=', 2); 
+              $query->where('date', '>=', $_begin->format('Y-m-d')); 
+              $query->where('date', '<', $_end->format('Y-m-d')); 
+              $query->orderBy('date', 'asc');
+            }))->get(['id']);
+            $cityPerMonth[] = $cities->toArray();
+          }
+          $incompleteCities = [];
+          $cities = [];
+          forEach($cityPerMonth as $_cities) {
+            forEach($_cities as $city) {
+              if (count($city["data"]) === 0) $incompleteCities[$city["id"]] = true;
+              if(!isset($cities[$city["id"]])) {
+                $cities[$city["id"]] = $city;
+                $cities[$city["id"]]["data"] = [];
+              }
+              $cities[$city["id"]]["data"] = array_merge($cities[$city["id"]]["data"], $city["data"]);
+            }
+          }
+          $incompleteCities = array_keys($incompleteCities);
         }
-        forEach($cities->toArray() as $i => $city) {
+        forEach($cities as $i => $city) {
+          if (in_array($city["id"], $incompleteCities)) continue;
           if ( count ($city["data"]) == 0) continue;
           if (!isset($responseArray[$city["id"]])) {
             $responseArray[$city["id"]] = array();
