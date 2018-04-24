@@ -10,7 +10,8 @@
         "vlucas/phpdotenv": "~2.2",
         "cloudinary/cloudinary_php": "dev-master",
         "auth0/auth0-php": "~5.0",
-        "maatwebsite/excel": "~2.1.0"
+        "maatwebsite/excel": "~2.1.0",
+        "chumper/zipper": "1.0.x"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

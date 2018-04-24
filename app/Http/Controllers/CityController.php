@@ -5,10 +5,13 @@ use Illuminate\Http\Request;
 use App\Models\City;
 use App\Models\Data;
 use App\Models\Media;
+use App\Models\Sheet;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Config;
+use ZipArchive;
+use Zipper;
 
 class CityController extends Controller
 {
@@ -47,7 +50,7 @@ class CityController extends Controller
       $request_timespans = $request->input('timespans', array());
       if (count($request_timespans) == 0) $request_timespans = array($request->input('gettimespans', array()));
       if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
-      // if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
+      if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
 
       $city_ids = $request->input('cityIds', array());
 
@@ -55,6 +58,11 @@ class CityController extends Controller
 
       $count = 0;
       $responseArray = array();
+
+      
+      $includeData = filter_var($request->input('includeData', true), FILTER_VALIDATE_BOOLEAN);
+      $includeMeta = filter_var($request->input('includeMeta', false), FILTER_VALIDATE_BOOLEAN);
+
       forEach($request_timespans as $timespan) {
         $timespans = gettype($timespan) == "array" ? $timespan : explode('/', $timespan);
         if (count($timespans) != 2) return response('Invalid Time Format - 2', 400);
@@ -125,7 +133,7 @@ class CityController extends Controller
           'Access-Control-Allow-Origin'      => '*'
         ];
 
-      if ($format == 'xlsx'):
+      if ($format == 'xlsx' && $includeData && !$includeMeta):
         $headers['Content-type'] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         $headers['Content-Disposition'] = "attachment; filename=export.xlsx";
         Excel::create('Laravel Excel', function($excel) use ($responseArray) {
@@ -136,8 +144,7 @@ class CityController extends Controller
 
             });
         })->download('xls', $headers);
-        // return response()->json(array('data'=>$responseArray));
-      else:
+      elseif($format == 'csv' && $includeData && !$includeMeta):
         $headers['Content-type'] = "text/csv";
         $headers['Content-Disposition'] = "attachment; filename=export.csv";
 
@@ -156,8 +163,53 @@ class CityController extends Controller
         $response = new StreamedResponse($callback, 200, $headers);
 
         return $response;
-        // return response()->stream($callback, 200, $headers);
-        // return response()->json(array('data'=>$responseArray));
+      elseif($includeData && $includeMeta):
+
+        $zipper = new Zipper;
+        $zip = storage_path("zips/export.zip");
+        $zipper->make($zip);
+        $zipper->remove($zipper->listFiles());
+
+        $metadata = Sheet::where('type', 'Metadata')
+        ->orderBy('created_at', 'desc')
+        ->firstOrFail();
+
+        $source = "https://res.cloudinary.com/gates/raw/upload/" . $metadata->data;
+        $data = file_get_contents($source);
+        $zipper->addString("metadata.pdf", $data);
+
+        if ($format === "csv") {
+          if (count($responseArray) > 0) {
+            array_unshift($responseArray, array_keys($responseArray[0]));
+          }
+          ob_start();
+          $data = fopen('php://output', 'w');
+          foreach ($responseArray as &$row) { 
+            implode(",", $row);
+              fputcsv($data, $row);
+          }
+          $data = ob_get_contents();
+          ob_end_clean();
+          $zipper->addString("data.csv", $data);
+        } else {
+          $stored = Excel::create('data', function($excel) use ($responseArray) {
+              $excel->sheet('data', function($sheet) use ($responseArray) {
+                  $sheet->setOrientation('landscape');
+                  $sheet->fromArray($responseArray);
+              });
+          })->store('xlsx', false, true);
+          $zipper->add($stored["full"]);
+        }
+        $zipper->close();
+        return response()->download($zip, "export.zip", $headers);
+
+      elseif(!$includeData && $includeMeta):
+
+        $metadata = Sheet::where('type', 'Metadata')
+        ->orderBy('created_at', 'desc')
+        ->firstOrFail();
+        return redirect()->to("https://res.cloudinary.com/gates/raw/upload/" . $metadata->data);
+
       endif;
     }
 

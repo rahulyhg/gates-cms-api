@@ -49,6 +49,14 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+$app->singleton('zipper', function ($app) {
+    return $app->loadComponent(
+        'zipper',
+        Chumper\Zipper\ZipperServiceProvider::class,
+        'zipper'
+    );
+});
+
 /*
 |--------------------------------------------------------------------------
 | Register Middleware
@@ -94,6 +102,11 @@ $app->register('Maatwebsite\Excel\ExcelServiceProvider');
 class_alias('Maatwebsite\Excel\Facades\Excel', 'Excel');
 class_alias('Illuminate\Support\Facades\Response', 'Response');
 class_alias('Illuminate\Support\Facades\Config', 'Config');
+
+// $app->register(Chumper\Zipper\ZipperServiceProvider::class);
+class_alias(Chumper\Zipper\Zipper::class, 'Zipper');
+
+// class_alias('ZanySoft\Zip\Zip', 'Zip');
 
 /*
 |--------------------------------------------------------------------------
