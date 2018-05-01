@@ -6,6 +6,9 @@ use App\Models\City;
 use App\Models\Data;
 use App\Models\Media;
 use App\Models\Sheet;
+use App\Models\Tract;
+use App\Models\County;
+
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Response;
@@ -226,6 +229,11 @@ class CityController extends Controller
       if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
       // if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
 
+      $city_ids = $request->input('cityIds', array());
+      $tract_ids = $request->input('tractIds', array());
+      if (gettype($tract_ids) == 'string') {$tract_ids = explode(',', $tract_ids);}
+
+
       $incompleteAllowed = filter_var($request->input('incompleteAllowed', true), FILTER_VALIDATE_BOOLEAN);
       $count = 0;
       $responseArray = array();
@@ -246,36 +254,51 @@ class CityController extends Controller
 
 
         $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
-        // if ($yearData) {
-        //   $begin = explode('-', $begin);
-        //   $begin[1] = '01';
-        //   $begin[2] = '01 00:00:00';
-        //   $begin = implode('-', $begin);
-
-        //   $end = explode('-', $end);
-        //   $end[1] = '01';
-        //   $end[2] = '01 00:00:00';
-        //   $end = implode('-', $end);
-        // }
-
-        // $cities = City::with('data')->get(['id']);
 
         if ($yearData) {
           $years = $begin->diff($end)->y;
-          // return response()->json(array('data'=>$years));
+
           $cityPerYear = [];
           for ($i = 0; $i <= $years; $i++) {
             $_begin = clone $begin;
             $_begin->add(new \DateInterval('P'.$i.'Y'));
             $_end = clone $begin;
             $_end->add(new \DateInterval('P'.($i + 1).'Y'));
+            if (count($city_ids) > 0) {
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
+                $query->where('datatype', '=', 1);
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->whereIn('id', $city_ids)
+              ->get(['id']);
+            } elseif(count($tract_ids) > 0) {
 
-            $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
-              $query->where('datatype', '=', 1);
-              $query->where('date', '>=', $_begin->format('Y-m-d')); 
-              $query->where('date', '<', $_end->format('Y-m-d')); 
-              $query->orderBy('date', 'asc');
-            }))->get(['id']);
+              $county_ids = County::whereHas('tracts', function ($query) use ($tract_ids) {
+                $query->whereIn('id', $tract_ids);
+              })->pluck('id')->toArray();
+
+               $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
+                $query->where('datatype', '=', 1);
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->whereHas('counties', function ($query) use ($county_ids) {
+                $query->whereIn('counties.id', $county_ids);
+              })
+              ->get(['id']);
+
+            }else {
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
+                $query->where('datatype', '=', 1);
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->get(['id']);
+            }
             $cityPerYear[] = $cities->toArray();
           }
           $incompleteCities = [];
@@ -301,12 +324,41 @@ class CityController extends Controller
             $_end = clone $begin;
             $_end->add(new \DateInterval('P'.($i + 1).'M'));
 
-            $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
-              $query->where('datatype', '=', 2); 
-              $query->where('date', '>=', $_begin->format('Y-m-d')); 
-              $query->where('date', '<', $_end->format('Y-m-d')); 
-              $query->orderBy('date', 'asc');
-            }))->get(['id']);
+            if (count($city_ids) > 0) {
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
+                $query->where('datatype', '=', 2); 
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->whereIn('id', $city_ids)
+              ->get(['id']);
+            } elseif (count($tract_ids) > 0) {
+
+              $county_ids = County::whereHas('tracts', function ($query) use ($tract_ids) {
+                $query->whereIn('id', $tract_ids);
+              })->pluck('id')->toArray();
+
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
+                $query->where('datatype', '=', 1);
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->whereHas('counties', function ($query) use ($county_ids) {
+                $query->whereIn('counties.id', $county_ids);
+              })
+              ->get(['id']);
+              // return response()->json(array('data'=>$cities));
+            } else {
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
+                $query->where('datatype', '=', 2); 
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))->get(['id']);
+            }
+
             $cityPerMonth[] = $cities->toArray();
           }
           $incompleteCities = [];

@@ -14,11 +14,10 @@ class TractTableSeeder extends Seeder
      */
     public function run()
     {
-      return;
       $path = storage_path("tracts");
       $dir = new DirectoryIterator($path);
       foreach ($dir as $i => $fileinfo) {
-          // if ($i > 5) continue;
+          if ($i > 5000) continue;
           if (!$fileinfo->isDot() && $fileinfo->getFilename() !== ".DS_Store") {
               $string = file_get_contents($path . "/" . $fileinfo->getFilename());
               $tract = json_decode($string, true);
@@ -42,13 +41,13 @@ class TractTableSeeder extends Seeder
               ]);
           }
       }
-      $lat = 36.1104;
-      $long = -88.0980;
-      $query =  "select name, STATEFP, COUNTYFP, TRACTCE, GEOID, ST_Within(ST_PointFromText('POINT($long $lat)'), area) as within from tracts HAVING within=1;";
-      $result = DB::select(DB::raw($query));
-      if (count($result) > 0) {
-        print_r($result[0]);
-      }
+      // $lat = 36.1104;
+      // $long = -88.0980;
+      // $query =  "select name, STATEFP, COUNTYFP, TRACTCE, GEOID, ST_Within(ST_PointFromText('POINT($long $lat)'), area) as within from tracts HAVING within=1;";
+      // $result = DB::select(DB::raw($query));
+      // if (count($result) > 0) {
+      //   print_r($result[0]);
+      // }
 
        // select tracts.*, ST_Within(ST_PointFromText('POINT(-88.0980 36.1104 )'), area) as within from tracts HAVING within=1;
 

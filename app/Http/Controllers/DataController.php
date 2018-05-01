@@ -133,7 +133,7 @@ class DataController extends Controller
                   'error' => 'missing counties', 
                   'countyNames' => $countyNames,
                   'countiesReturned' => $counties
-                ), 201);
+                ), 500);
             }
             $city->counties()->sync($counties);
           }

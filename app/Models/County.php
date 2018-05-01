@@ -13,7 +13,7 @@ final class County extends Model
   /**
    * Get the data.
    */
-  public function tract()
+  public function tracts()
   {
     return $this->hasMany('App\Models\Tract');
   }
