@@ -63,6 +63,11 @@ class CityController extends Controller
       $includeData = filter_var($request->input('includeData', true), FILTER_VALIDATE_BOOLEAN);
       $includeMeta = filter_var($request->input('includeMeta', false), FILTER_VALIDATE_BOOLEAN);
 
+      $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
+      $monthData = filter_var($request->input('monthData', false), FILTER_VALIDATE_BOOLEAN);
+      
+      if (!$yearData && !$monthData) return response('Must Include "yearData" and/or "monthData"', 400);
+
       forEach($request_timespans as $timespan) {
         $timespans = gettype($timespan) == "array" ? $timespan : explode('/', $timespan);
         if (count($timespans) != 2) return response('Invalid Time Format - 2', 400);
@@ -72,7 +77,6 @@ class CityController extends Controller
         $begin = date ('Y-m-d 00:00:00', strtotime ($timespans[0]) );
         $end = date ('Y-m-d 00:00:00', strtotime ($timespans[1]) );
 
-        $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
 
         // $cities = City::with(array('data' => function ($query) use ($begin, $end) {
         //   $query->where('datatype', '=', 1);
@@ -82,25 +86,45 @@ class CityController extends Controller
         // }, 'state'))->get(['county', 'id', 'title', 'state_id']);
 
         // $data = Data::with('city', 'state')
-        $data = count($city_ids) > 0 ? Data::where('datatype', '=', $yearData ? 1 : 2)
-          ->where('date', '>=', $begin)
-          ->where('date', '<=', $end)
-          ->whereIn('city_id', $city_ids)
-          ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
-          ->orderBy('date', 'asc')
-          ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id'])
-        :
-          Data::where('datatype', '=', $yearData ? 1 : 2)
-          ->where('date', '>=', $begin)
-          ->where('date', '<=', $end)
-          ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
-          ->orderBy('date', 'asc')
-          ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
+        $data = [];
+        if ($yearData) {
+          $data = count($city_ids) > 0 ? Data::where('datatype', '=', 1)
+            ->where('date', '>=', $begin)
+            ->where('date', '<=', $end)
+            ->whereIn('city_id', $city_ids)
+            ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
+            ->orderBy('date', 'asc')
+            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype'])->toArray()
+          :
+            Data::where('datatype', '=', 1)
+            ->where('date', '>=', $begin)
+            ->where('date', '<=', $end)
+            ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
+            ->orderBy('date', 'asc')
+            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype'])->toArray();
+        }
+        if ($monthData) {
+          $dataMonth = count($city_ids) > 0 ? Data::where('datatype', '=', 2)
+            ->where('date', '>=', $begin)
+            ->where('date', '<=', $end)
+            ->whereIn('city_id', $city_ids)
+            ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
+            ->orderBy('date', 'asc')
+            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype'])->toArray()
+          :
+            Data::where('datatype', '=', 2)
+            ->where('date', '>=', $begin)
+            ->where('date', '<=', $end)
+            ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
+            ->orderBy('date', 'asc')
+            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype'])->toArray();
+        }
+        
 
 
-        $data = $data->toArray();
+        $data = isset($dataMonth) ? array_merge($data, $dataMonth) : $data;
         $count += count($data);
-        $mapping = function ($value) use ($request_timespans, $begin, $end, $yearData) {
+        $mapping = function ($value) use ($request_timespans, $begin, $end, $yearData, $monthData) {
           $newVal = [];
           if (count($request_timespans) > 1) {
             $b = explode(' ', $begin);
@@ -109,8 +133,8 @@ class CityController extends Controller
           }
           $newVal['id'] = $value['city']['id'];
           $newVal['year'] = date ('Y', strtotime ($value['date']) );
-          if (!$yearData) {
-            $newVal['month'] = date ('m', strtotime ($value['date']) );
+          if ($monthData) {
+            $newVal['month'] = $value['datatype'] == 2 ? date ('m', strtotime ($value['date']) ) : '-';
           }
           $newVal['state_abr'] = $value['city']['state']['abbreviation'];
           $newVal['county_name'] = $value['city']['county'];
@@ -120,6 +144,7 @@ class CityController extends Controller
           $newVal['crime_count'] = $value['crimeCount'];
           $newVal['annualized_rate_per_100k'] = $value['per100k'];
           $newVal['source_desc'] = $value['source']['name'];
+          $newVal['yearly_monthly'] = $value['datatype'] == 2 ? "monthly" : "yearly";
           return $newVal;
         };
         $data = array_map($mapping, $data);
