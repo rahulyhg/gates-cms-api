@@ -6,3 +6,5 @@ Homestead.yaml
 client_secret.json
 storage/exports/*
 storage/zips/*
+storage/tracts/*
+storage/usa_census_tracts.geojson

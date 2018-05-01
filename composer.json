@@ -11,7 +11,8 @@
         "cloudinary/cloudinary_php": "dev-master",
         "auth0/auth0-php": "~5.0",
         "maatwebsite/excel": "~2.1.0",
-        "chumper/zipper": "1.0.x"
+        "chumper/zipper": "1.0.x",
+        "grimzy/laravel-mysql-spatial": "^2.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

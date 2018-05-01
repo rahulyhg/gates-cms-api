@@ -106,6 +106,9 @@ class_alias('Illuminate\Support\Facades\Config', 'Config');
 // $app->register(Chumper\Zipper\ZipperServiceProvider::class);
 class_alias(Chumper\Zipper\Zipper::class, 'Zipper');
 
+$app->register(Grimzy\LaravelMysqlSpatial\SpatialServiceProvider::class);
+
+
 // class_alias('ZanySoft\Zip\Zip', 'Zip');
 
 /*

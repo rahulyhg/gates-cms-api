@@ -5,3 +5,8 @@
 `php artisan migrate:refresh --seed`
 
 `php -S localhost:8000 -t public`
+
+```
+cat usa_census_tracts.geojson | jq -c -M '.features[]' | \
+  while read line; do echo $line > tracts/$(uuidgen).json; done
+```

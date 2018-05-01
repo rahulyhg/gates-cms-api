@@ -43,6 +43,14 @@ $router->group(['prefix' => 'api/v1/crimes/'], function ($app) {
 });
 
 
+$router->group(['prefix' => 'api/v1/censusCrimes/'], function ($app) {
+  $app->post('/','CityController@censusCrimes');
+  $app->get('/','CityController@censusCrimes');
+});
+
+
+
+
 $router->group(['prefix' => 'api/v1/metadata/'], function ($app) {
   $app->get('/','SheetController@metadata');
 });
