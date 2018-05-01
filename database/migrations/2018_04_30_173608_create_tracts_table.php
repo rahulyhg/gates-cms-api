@@ -15,11 +15,12 @@ class CreateTractsTable extends Migration
     {
         Schema::create('tracts', function (Blueprint $table) {
             $table->increments('id');
+            $table->integer('county_id');
             $table->string('STATEFP');
             $table->string('COUNTYFP');
             $table->string('TRACTCE');
             $table->string('GEOID');
-            $table->string('NAME')->unique();;
+            $table->string('NAME');
             $table->string('NAMELSAD');
             $table->string('MTFCC');
             $table->string('FUNCSTAT');

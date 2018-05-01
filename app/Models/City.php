@@ -25,4 +25,12 @@ final class City extends Model
   {
     return $this->hasMany('App\Models\Data');
   }
+
+  /**
+   * Get the data.
+   */
+  public function county()
+  {
+    return $this->hasMany('App\Models\County');
+  }
 }

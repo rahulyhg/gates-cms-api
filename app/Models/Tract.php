@@ -17,4 +17,9 @@ final class Tract extends Model
   protected $spatialFields = [
       'area'
   ];
+
+  public function county()
+  {
+    return $this->belongsTo('App\Models\County');
+  }
 }

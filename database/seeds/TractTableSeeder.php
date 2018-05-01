@@ -14,7 +14,7 @@ class TractTableSeeder extends Seeder
      */
     public function run()
     {
-      
+      return;
       $path = storage_path("tracts");
       $dir = new DirectoryIterator($path);
       foreach ($dir as $i => $fileinfo) {
@@ -25,6 +25,7 @@ class TractTableSeeder extends Seeder
               $area = Geometry::fromJson(json_encode($tract["geometry"]));
               $props = $tract["properties"];
               Tract::create([
+                'county_id'=>$props["STATEFP"].$props["COUNTYFP"], 
                 'STATEFP'=>$props["STATEFP"], 
                 'COUNTYFP'=>$props["COUNTYFP"], 
                 'TRACTCE'=>$props["TRACTCE"], 
