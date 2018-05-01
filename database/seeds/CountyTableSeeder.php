@@ -12,6 +12,7 @@ class CountyTableSeeder extends Seeder
      */
     public function run()
     {
+      //https://www.census.gov/geo/reference/codes/cou.html
       $path = storage_path("national_county.txt");
       $handle = fopen($path, "r");
       if ($handle) {

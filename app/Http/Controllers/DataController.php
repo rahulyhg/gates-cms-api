@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Crime;
 use App\Models\Source;
 use App\Models\Media;
+use App\Models\County;
 
 class DataController extends Controller
 { 
@@ -120,6 +121,23 @@ class DataController extends Controller
           //   {value: 3, text: 'over 1M'}
           // ],
           $city->save();
+          $countyNames = array_map('trim', explode(',', $city->county));
+
+          // return response()->json($countyNames, 201);
+          $counties = County::where('STATEFP', $city->state_id)
+          ->whereIn('COUNTYNAME', $countyNames)->pluck('id')->toArray();
+          if (count($counties) > 0) {
+            if (count($counties) !== count($countyNames)) {
+              return response()->json(
+                array(
+                  'error' => 'missing counties', 
+                  'countyNames' => $countyNames,
+                  'countiesReturned' => $counties
+                ), 201);
+            }
+            $city->counties()->sync($counties);
+          }
+
         }
         return response()->json(null, 201);
     }
