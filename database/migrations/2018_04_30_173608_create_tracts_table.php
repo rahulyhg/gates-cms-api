@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Schema;
-// use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Grimzy\LaravelMysqlSpatial\Schema\Blueprint;
+// use Grimzy\LaravelMysqlSpatial\Schema\Blueprint;
 class CreateTractsTable extends Migration
 {
     /**
@@ -28,7 +28,7 @@ class CreateTractsTable extends Migration
             $table->string('AWATER');
             $table->string('INTPTLAT');
             $table->string('INTPTLON');
-            $table->multiPolygon('area')->nullable();
+            // $table->multiPolygon('area')->nullable();
             $table->timestamps();
         });
     }

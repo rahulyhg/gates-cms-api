@@ -21,7 +21,7 @@ class TractTableSeeder extends Seeder
           if (!$fileinfo->isDot() && $fileinfo->getFilename() !== ".DS_Store") {
               $string = file_get_contents($path . "/" . $fileinfo->getFilename());
               $tract = json_decode($string, true);
-              $area = Geometry::fromJson(json_encode($tract["geometry"]));
+              // $area = Geometry::fromJson(json_encode($tract["geometry"]));
               $props = $tract["properties"];
               Tract::create([
                 'county_id'=>$props["STATEFP"].$props["COUNTYFP"], 
@@ -37,7 +37,7 @@ class TractTableSeeder extends Seeder
                 'AWATER'=>$props["AWATER"], 
                 'INTPTLAT'=>$props["INTPTLAT"], 
                 'INTPTLON'=>$props["INTPTLON"], 
-                'area'=>$area 
+                // 'area'=>$area 
               ]);
           }
       }
