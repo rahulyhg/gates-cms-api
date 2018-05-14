@@ -6,6 +6,9 @@ use App\Models\City;
 use App\Models\Data;
 use App\Models\Media;
 use App\Models\Sheet;
+use App\Models\Tract;
+use App\Models\County;
+
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Response;
@@ -47,10 +50,13 @@ class CityController extends Controller
     public function export(Request $request)
     {
 
+      $includeData = filter_var($request->input('includeData', true), FILTER_VALIDATE_BOOLEAN);
+      $includeMeta = filter_var($request->input('includeMeta', false), FILTER_VALIDATE_BOOLEAN);
+
       $request_timespans = $request->input('timespans', array());
-      if (count($request_timespans) == 0) $request_timespans = array($request->input('gettimespans', array()));
-      if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
-      if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
+      if (count($request_timespans) == 0 && $includeData) $request_timespans = array($request->input('gettimespans', array()));
+      if (count($request_timespans) == 0 && $includeData) return response('Invalid Time Format', 400);
+      if (count($request_timespans) == 1 && $includeData) $request_timespans = array($request_timespans);
 
       $city_ids = $request->input('cityIds', array());
 
@@ -59,97 +65,71 @@ class CityController extends Controller
       $count = 0;
       $responseArray = array();
 
-      
-      $includeData = filter_var($request->input('includeData', true), FILTER_VALIDATE_BOOLEAN);
-      $includeMeta = filter_var($request->input('includeMeta', false), FILTER_VALIDATE_BOOLEAN);
+      if ($includeData):
+        forEach($request_timespans as $timespan) {
+          $timespans = gettype($timespan) == "array" ? $timespan : explode('/', $timespan);
 
-      $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
-      $monthData = filter_var($request->input('monthData', false), FILTER_VALIDATE_BOOLEAN);
-      
-      if (!$yearData && !$monthData) return response('Must Include "yearData" and/or "monthData"', 400);
+          if (count($timespans) != 2 && $includeData) return response('Invalid Time Format - 2', 400);
 
-      forEach($request_timespans as $timespan) {
-        $timespans = gettype($timespan) == "array" ? $timespan : explode('/', $timespan);
-        if (count($timespans) != 2) return response('Invalid Time Format - 2', 400);
+          //YYYY-MM-DDT13:00:00Z/YYYY-MM-DDT15:30:00Z
 
-        //YYYY-MM-DDT13:00:00Z/YYYY-MM-DDT15:30:00Z
+          $begin = date ('Y-m-d 00:00:00', strtotime ($timespans[0]) );
+          $end = date ('Y-m-d 00:00:00', strtotime ($timespans[1]) );
 
-        $begin = date ('Y-m-d 00:00:00', strtotime ($timespans[0]) );
-        $end = date ('Y-m-d 00:00:00', strtotime ($timespans[1]) );
+          $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
 
+          // $cities = City::with(array('data' => function ($query) use ($begin, $end) {
+          //   $query->where('datatype', '=', 1);
+          //   $query->where('date', '>=', $begin); 
+          //   $query->where('date', '<=', $end); 
+          //   $query->orderBy('date', 'asc');
+          // }, 'state'))->get(['county', 'id', 'title', 'state_id']);
 
-        // $cities = City::with(array('data' => function ($query) use ($begin, $end) {
-        //   $query->where('datatype', '=', 1);
-        //   $query->where('date', '>=', $begin); 
-        //   $query->where('date', '<=', $end); 
-        //   $query->orderBy('date', 'asc');
-        // }, 'state'))->get(['county', 'id', 'title', 'state_id']);
-
-        // $data = Data::with('city', 'state')
-        $data = [];
-        if ($yearData) {
-          $data = count($city_ids) > 0 ? Data::where('datatype', '=', 1)
+          // $data = Data::with('city', 'state')
+          $data = count($city_ids) > 0 ? Data::where('datatype', '=', $yearData ? 1 : 2)
             ->where('date', '>=', $begin)
             ->where('date', '<=', $end)
             ->whereIn('city_id', $city_ids)
             ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
             ->orderBy('date', 'asc')
-            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype'])->toArray()
+            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id'])
           :
-            Data::where('datatype', '=', 1)
+            Data::where('datatype', '=', $yearData ? 1 : 2)
             ->where('date', '>=', $begin)
             ->where('date', '<=', $end)
             ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
             ->orderBy('date', 'asc')
-            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype'])->toArray();
-        }
-        if ($monthData) {
-          $dataMonth = count($city_ids) > 0 ? Data::where('datatype', '=', 2)
-            ->where('date', '>=', $begin)
-            ->where('date', '<=', $end)
-            ->whereIn('city_id', $city_ids)
-            ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
-            ->orderBy('date', 'asc')
-            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype'])->toArray()
-          :
-            Data::where('datatype', '=', 2)
-            ->where('date', '>=', $begin)
-            ->where('date', '<=', $end)
-            ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
-            ->orderBy('date', 'asc')
-            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype'])->toArray();
-        }
-        
+            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
 
 
-        $data = isset($dataMonth) ? array_merge($data, $dataMonth) : $data;
-        $count += count($data);
-        $mapping = function ($value) use ($request_timespans, $begin, $end, $yearData, $monthData) {
-          $newVal = [];
-          if (count($request_timespans) > 1) {
-            $b = explode(' ', $begin);
-            $e = explode(' ', $end);
-            $newVal['timespan'] = $b[0]."T00:00:00Z/".$e[0]."T00:00:00Z";
-          }
-          $newVal['id'] = $value['city']['id'];
-          $newVal['year'] = date ('Y', strtotime ($value['date']) );
-          if ($monthData) {
-            $newVal['month'] = $value['datatype'] == 2 ? date ('m', strtotime ($value['date']) ) : '-';
-          }
-          $newVal['state_abr'] = $value['city']['state']['abbreviation'];
-          $newVal['county_name'] = $value['city']['county'];
-          $newVal['place_name'] = $value['city']['title'];
-          $newVal['population_est'] = $value['population'];
-          $newVal['crime_type'] = $value['crime']['name'];
-          $newVal['crime_count'] = $value['crimeCount'];
-          $newVal['annualized_rate_per_100k'] = $value['per100k'];
-          $newVal['source_desc'] = $value['source']['name'];
-          $newVal['yearly_monthly'] = $value['datatype'] == 2 ? "monthly" : "yearly";
-          return $newVal;
-        };
-        $data = array_map($mapping, $data);
-        $responseArray = array_merge($responseArray, $data);
-      }
+          $data = $data->toArray();
+          $count += count($data);
+          $mapping = function ($value) use ($request_timespans, $begin, $end, $yearData) {
+            $newVal = [];
+            if (count($request_timespans) > 1) {
+              $b = explode(' ', $begin);
+              $e = explode(' ', $end);
+              $newVal['timespan'] = $b[0]."T00:00:00Z/".$e[0]."T00:00:00Z";
+            }
+            $newVal['id'] = $value['city']['id'];
+            $newVal['year'] = date ('Y', strtotime ($value['date']) );
+            if (!$yearData) {
+              $newVal['month'] = date ('m', strtotime ($value['date']) );
+            }
+            $newVal['state_abr'] = $value['city']['state']['abbreviation'];
+            $newVal['county_name'] = $value['city']['county'];
+            $newVal['place_name'] = $value['city']['title'];
+            $newVal['population_est'] = $value['population'];
+            $newVal['crime_type'] = $value['crime']['name'];
+            $newVal['crime_count'] = $value['crimeCount'];
+            $newVal['annualized_rate_per_100k'] = $value['per100k'];
+            $newVal['source_desc'] = $value['source']['name'];
+            return $newVal;
+          };
+          $data = array_map($mapping, $data);
+          $responseArray = array_merge($responseArray, $data);
+        }
+      endif;
 
       $headers = [
               'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
@@ -251,6 +231,11 @@ class CityController extends Controller
       if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
       // if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
 
+      $city_ids = $request->input('cityIds', array());
+      $tract_ids = $request->input('tractIds', array());
+      if (gettype($tract_ids) == 'string') {$tract_ids = explode(',', $tract_ids);}
+
+
       $incompleteAllowed = filter_var($request->input('incompleteAllowed', true), FILTER_VALIDATE_BOOLEAN);
       $count = 0;
       $responseArray = array();
@@ -271,36 +256,51 @@ class CityController extends Controller
 
 
         $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
-        // if ($yearData) {
-        //   $begin = explode('-', $begin);
-        //   $begin[1] = '01';
-        //   $begin[2] = '01 00:00:00';
-        //   $begin = implode('-', $begin);
-
-        //   $end = explode('-', $end);
-        //   $end[1] = '01';
-        //   $end[2] = '01 00:00:00';
-        //   $end = implode('-', $end);
-        // }
-
-        // $cities = City::with('data')->get(['id']);
 
         if ($yearData) {
           $years = $begin->diff($end)->y;
-          // return response()->json(array('data'=>$years));
+
           $cityPerYear = [];
           for ($i = 0; $i <= $years; $i++) {
             $_begin = clone $begin;
             $_begin->add(new \DateInterval('P'.$i.'Y'));
             $_end = clone $begin;
             $_end->add(new \DateInterval('P'.($i + 1).'Y'));
+            if (count($city_ids) > 0) {
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
+                $query->where('datatype', '=', 1);
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->whereIn('id', $city_ids)
+              ->get(['id']);
+            } elseif(count($tract_ids) > 0) {
 
-            $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
-              $query->where('datatype', '=', 1);
-              $query->where('date', '>=', $_begin->format('Y-m-d')); 
-              $query->where('date', '<', $_end->format('Y-m-d')); 
-              $query->orderBy('date', 'asc');
-            }))->get(['id']);
+              $county_ids = County::whereHas('tracts', function ($query) use ($tract_ids) {
+                $query->whereIn('id', $tract_ids);
+              })->pluck('id')->toArray();
+
+               $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
+                $query->where('datatype', '=', 1);
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->whereHas('counties', function ($query) use ($county_ids) {
+                $query->whereIn('counties.id', $county_ids);
+              })
+              ->get(['id']);
+
+            }else {
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
+                $query->where('datatype', '=', 1);
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->get(['id']);
+            }
             $cityPerYear[] = $cities->toArray();
           }
           $incompleteCities = [];
@@ -326,12 +326,41 @@ class CityController extends Controller
             $_end = clone $begin;
             $_end->add(new \DateInterval('P'.($i + 1).'M'));
 
-            $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
-              $query->where('datatype', '=', 2); 
-              $query->where('date', '>=', $_begin->format('Y-m-d')); 
-              $query->where('date', '<', $_end->format('Y-m-d')); 
-              $query->orderBy('date', 'asc');
-            }))->get(['id']);
+            if (count($city_ids) > 0) {
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
+                $query->where('datatype', '=', 2); 
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->whereIn('id', $city_ids)
+              ->get(['id']);
+            } elseif (count($tract_ids) > 0) {
+
+              $county_ids = County::whereHas('tracts', function ($query) use ($tract_ids) {
+                $query->whereIn('id', $tract_ids);
+              })->pluck('id')->toArray();
+
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
+                $query->where('datatype', '=', 1);
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))
+              ->whereHas('counties', function ($query) use ($county_ids) {
+                $query->whereIn('counties.id', $county_ids);
+              })
+              ->get(['id']);
+              // return response()->json(array('data'=>$cities));
+            } else {
+              $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
+                $query->where('datatype', '=', 2); 
+                $query->where('date', '>=', $_begin->format('Y-m-d')); 
+                $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->orderBy('date', 'asc');
+              }))->get(['id']);
+            }
+
             $cityPerMonth[] = $cities->toArray();
           }
           $incompleteCities = [];
