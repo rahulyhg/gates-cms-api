@@ -210,10 +210,18 @@ class CityController extends Controller
 
       elseif(!$includeData && $includeMeta):
 
+        $headers = [
+            'Access-Control-Allow-Origin'      => '*',
+            'Access-Control-Allow-Methods'     => 'POST, GET, OPTIONS, PUT, DELETE, PATCH',
+            'Access-Control-Allow-Credentials' => 'true',
+            'Access-Control-Max-Age'           => '86400',
+            'Access-Control-Allow-Headers'     => 'Content-Type, Authorization, X-Requested-With'
+        ];
+
         $metadata = Sheet::where('type', 'Metadata')
         ->orderBy('created_at', 'desc')
         ->firstOrFail();
-        return redirect()->to("https://res.cloudinary.com/gates/raw/upload/" . $metadata->data);
+        return redirect()->to("https://res.cloudinary.com/gates/raw/upload/" . $metadata->data, 302, $headers);
 
       endif;
     }
