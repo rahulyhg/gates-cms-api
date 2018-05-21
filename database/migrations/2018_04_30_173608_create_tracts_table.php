@@ -14,7 +14,7 @@ class CreateTractsTable extends Migration
     public function up()
     {
         Schema::create('tracts', function (Blueprint $table) {
-            $table->increments('id');
+            $table->integer('id');
             $table->integer('county_id');
             $table->string('STATEFP');
             $table->string('COUNTYFP');
