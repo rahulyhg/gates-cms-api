@@ -23,7 +23,7 @@ class TractTableSeeder extends Seeder
               $tract = json_decode($string, true);
               // $area = Geometry::fromJson(json_encode($tract["geometry"]));
               $props = $tract["properties"];
-              print_r($props);
+              // print_r($props);
               Tract::create([
                 'id'=>$props["GEOID"], 
                 'county_id'=>$props["STATEFP"].$props["COUNTYFP"], 
