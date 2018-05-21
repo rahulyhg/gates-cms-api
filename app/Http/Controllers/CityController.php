@@ -60,8 +60,14 @@ class CityController extends Controller
       if (count($request_timespans) == 1 && $includeData) $request_timespans = array($request_timespans);
 
       $city_ids = $request->input('cityIds', array());
+      $tract_ids = $request->input('tractIds', array());
+
+      if (gettype($city_ids) == 'string') {$city_ids = explode(',', $city_ids);}
+      if (gettype($tract_ids) == 'string') {$tract_ids = explode(',', $tract_ids);}
 
       $format = $request->input('format', 'csv');
+      
+      $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
 
       $count = 0;
       $responseArray = array();
@@ -77,7 +83,6 @@ class CityController extends Controller
           $begin = date ('Y-m-d 00:00:00', strtotime ($timespans[0]) );
           $end = date ('Y-m-d 00:00:00', strtotime ($timespans[1]) );
 
-          $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
 
           // $cities = City::with(array('data' => function ($query) use ($begin, $end) {
           //   $query->where('datatype', '=', 1);
@@ -87,25 +92,35 @@ class CityController extends Controller
           // }, 'state'))->get(['county', 'id', 'title', 'state_id']);
 
           // $data = Data::with('city', 'state')
-          $data = count($city_ids) > 0 ? Data::where('datatype', '=', $yearData ? 1 : 2)
-            ->where('date', '>=', $begin)
-            ->where('date', '<=', $end)
-            ->whereIn('city_id', $city_ids)
-            ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
-            ->orderBy('date', 'asc')
-            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id'])
-          :
-            Data::where('datatype', '=', $yearData ? 1 : 2)
-            ->where('date', '>=', $begin)
-            ->where('date', '<=', $end)
-            ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
-            ->orderBy('date', 'asc')
-            ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
-
+          if (count($city_ids) > 0) {
+            $data = Data::where('datatype', '=', $yearData ? 1 : 2)
+              ->where('date', '>=', $begin)
+              ->where('date', '<=', $end)
+              ->whereIn('city_id', $city_ids)
+              ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
+              ->orderBy('date', 'asc')
+              ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
+          } elseif (count($tract_ids) > 0) {
+            $data = Instance::where('date', '>=', $begin)
+              ->where('date', '<=', $end)
+              ->whereIn('tract_id', $tract_ids)
+              // ->with(['tract'])
+              ->orderBy('date', 'asc')
+              ->get(['year', 'month', 'date', 'state_abr', 'crime_type', 'crimeCount', 'lat', 'long', 'tract_id', 'population']);
+            // return response()->json(array('data'=>$data));
+          } else {
+            $data = Data::where('datatype', '=', $yearData ? 1 : 2)
+              ->where('date', '>=', $begin)
+              ->where('date', '<=', $end)
+              ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
+              ->orderBy('date', 'asc')
+              ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
+          }
+   
 
           $data = $data->toArray();
           $count += count($data);
-          $mapping = function ($value) use ($request_timespans, $begin, $end, $yearData) {
+          $cityMapping = function ($value) use ($request_timespans, $begin, $end, $yearData) {
             $newVal = [];
             if (count($request_timespans) > 1) {
               $b = explode(' ', $begin);
@@ -127,9 +142,27 @@ class CityController extends Controller
             $newVal['source_desc'] = $value['source']['name'];
             return $newVal;
           };
-          $data = array_map($mapping, $data);
+
+          $tractMapping = function ($value) use ($request_timespans, $begin, $end, $yearData) {
+            $newVal = [];
+            if (count($request_timespans) > 1) {
+              $b = explode(' ', $begin);
+              $e = explode(' ', $end);
+              $newVal['timespan'] = $b[0]."T00:00:00Z/".$e[0]."T00:00:00Z";
+            }
+            // $newVal['geoid'] = $value['tract']['id'];
+            $newVal['year'] = $value['year'];
+            $newVal['month'] = $value['month'];
+            $newVal['population_est'] = $value['population'];
+            // $newVal['crime_type'] = $value['crime']['name'];
+            $newVal['crime_count'] = $value['crimeCount'];
+            return $value;
+          };
+
+          $data = count($tract_ids) > 0 ? array_map($tractMapping, $data) : array_map($cityMapping, $data);
           $responseArray = array_merge($responseArray, $data);
         }
+
       endif;
 
       $headers = [
