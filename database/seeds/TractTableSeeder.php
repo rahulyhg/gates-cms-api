@@ -17,18 +17,18 @@ class TractTableSeeder extends Seeder
       $path = storage_path("tracts");
       $dir = new DirectoryIterator($path);
       foreach ($dir as $i => $fileinfo) {
-          if ($i > 5000) continue;
+          if ($i % 1000 == 0) echo $i . PHP_EOL;
           if (!$fileinfo->isDot() && $fileinfo->getFilename() !== ".DS_Store") {
               $string = file_get_contents($path . "/" . $fileinfo->getFilename());
               $tract = json_decode($string, true);
               // $area = Geometry::fromJson(json_encode($tract["geometry"]));
               $props = $tract["properties"];
               Tract::create([
+                'id'=>$props["GEOID"], 
                 'county_id'=>$props["STATEFP"].$props["COUNTYFP"], 
                 'STATEFP'=>$props["STATEFP"], 
                 'COUNTYFP'=>$props["COUNTYFP"], 
                 'TRACTCE'=>$props["TRACTCE"], 
-                'GEOID'=>$props["GEOID"], 
                 'NAME'=>$props["NAME"], 
                 'NAMELSAD'=>$props["NAMELSAD"], 
                 'MTFCC'=>$props["MTFCC"],   

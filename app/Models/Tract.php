@@ -22,4 +22,9 @@ final class Tract extends Model
   {
     return $this->belongsTo('App\Models\County');
   }
+
+  public function instance()
+  {
+    return $this->hasMany('App\Models\Instance');
+  }
 }

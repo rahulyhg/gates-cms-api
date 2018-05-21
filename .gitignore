@@ -8,3 +8,4 @@ storage/exports/*
 storage/zips/*
 storage/tracts/*
 storage/usa_census_tracts.geojson
+database/database.sqlite

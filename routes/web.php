@@ -121,4 +121,5 @@ $router->group(['prefix' => 'api/v1/import/', 'middleware' => 'auth'], function 
   $app->post('/cities','DataController@cities'); //get newest sheet
   $app->post('/crimes','DataController@crimes'); //get newest sheet
   $app->post('/sources','DataController@sources'); //get newest sheet
+  $app->post('/instances','DataController@instances'); //get newest sheet
 });

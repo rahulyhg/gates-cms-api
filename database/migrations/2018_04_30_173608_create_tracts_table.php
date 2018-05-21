@@ -19,7 +19,7 @@ class CreateTractsTable extends Migration
             $table->string('STATEFP');
             $table->string('COUNTYFP');
             $table->string('TRACTCE');
-            $table->string('GEOID');
+            // $table->string('GEOID');
             $table->string('NAME');
             $table->string('NAMELSAD');
             $table->string('MTFCC');

@@ -8,6 +8,7 @@ use App\Models\Media;
 use App\Models\Sheet;
 use App\Models\Tract;
 use App\Models\County;
+use App\Models\Instance;
 
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Maatwebsite\Excel\Facades\Excel;
@@ -228,11 +229,13 @@ class CityController extends Controller
       if (count($request_timespans) == 0) $request_timespans = array($request->input('gettimespans', array()));
       if (count($request_timespans) == 0) return response('Invalid Time Format', 400);
       // if (count($request_timespans) == 1) $request_timespans = array($request_timespans);
+      if (gettype($request_timespans) == 'string') {$request_timespans = explode(',', $request_timespans);}
 
       $city_ids = $request->input('cityIds', array());
       $tract_ids = $request->input('tractIds', array());
       if (gettype($tract_ids) == 'string') {$tract_ids = explode(',', $tract_ids);}
 
+      $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
 
       $incompleteAllowed = filter_var($request->input('incompleteAllowed', true), FILTER_VALIDATE_BOOLEAN);
       $count = 0;
@@ -253,11 +256,10 @@ class CityController extends Controller
         $end = new \DateTime($end);
 
 
-        $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
 
         if ($yearData) {
           $years = $begin->diff($end)->y;
-
+          // $years == 0 ? 1 : $years;
           $cityPerYear = [];
           for ($i = 0; $i <= $years; $i++) {
             $_begin = clone $begin;
@@ -273,24 +275,16 @@ class CityController extends Controller
               }))
               ->whereIn('id', $city_ids)
               ->get(['id']);
-            } elseif(count($tract_ids) > 0) {
-
-              $county_ids = County::whereHas('tracts', function ($query) use ($tract_ids) {
-                $query->whereIn('id', $tract_ids);
-              })->pluck('id')->toArray();
-
-               $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
-                $query->where('datatype', '=', 1);
+            } elseif (count($tract_ids) > 0) {
+              $cities = Tract::with(array('instance' => function ($query) use ($_begin, $_end) {
                 $query->where('date', '>=', $_begin->format('Y-m-d')); 
                 $query->where('date', '<', $_end->format('Y-m-d')); 
                 $query->orderBy('date', 'asc');
               }))
-              ->whereHas('counties', function ($query) use ($county_ids) {
-                $query->whereIn('counties.id', $county_ids);
-              })
+              ->whereIn('id', $tract_ids)
               ->get(['id']);
 
-            }else {
+            } else {
               $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
                 $query->where('datatype', '=', 1);
                 $query->where('date', '>=', $_begin->format('Y-m-d')); 
@@ -305,18 +299,24 @@ class CityController extends Controller
           $cities = [];
           forEach($cityPerYear as $_cities) {
             forEach($_cities as $city) {
-              if (count($city["data"]) === 0) $incompleteCities[$city["id"]] = true;
+              if (isset($city["data"])):
+                $key = "data";
+              else:
+                $key = "instance";
+              endif;
+
+              if (count($city[$key]) === 0) $incompleteCities[$city["id"]] = true;
               if(!isset($cities[$city["id"]])) {
                 $cities[$city["id"]] = $city;
-                $cities[$city["id"]]["data"] = [];
+                $cities[$city["id"]][$key] = [];
               }
-              $cities[$city["id"]]["data"] = array_merge($cities[$city["id"]]["data"], $city["data"]);
+              $cities[$city["id"]][$key] = array_merge($cities[$city["id"]][$key], $city[$key]);
             }
           }
           $incompleteCities = array_keys($incompleteCities);
         } else {
-
           $months = $begin->diff($end)->m + ($begin->diff($end)->y*12);
+          // $months == 0 ? 1 : $months;
           $cityPerMonth = [];
           for ($i = 0; $i <= $months; $i++) {
             $_begin = clone $begin;
@@ -334,22 +334,13 @@ class CityController extends Controller
               ->whereIn('id', $city_ids)
               ->get(['id']);
             } elseif (count($tract_ids) > 0) {
-
-              $county_ids = County::whereHas('tracts', function ($query) use ($tract_ids) {
-                $query->whereIn('id', $tract_ids);
-              })->pluck('id')->toArray();
-
-              $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
-                $query->where('datatype', '=', 1);
+              $cities = Tract::with(array('instance' => function ($query) use ($_begin, $_end) {
                 $query->where('date', '>=', $_begin->format('Y-m-d')); 
                 $query->where('date', '<', $_end->format('Y-m-d')); 
                 $query->orderBy('date', 'asc');
               }))
-              ->whereHas('counties', function ($query) use ($county_ids) {
-                $query->whereIn('counties.id', $county_ids);
-              })
+              ->whereIn('id', $tract_ids)
               ->get(['id']);
-              // return response()->json(array('data'=>$cities));
             } else {
               $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
                 $query->where('datatype', '=', 2); 
@@ -363,21 +354,33 @@ class CityController extends Controller
           }
           $incompleteCities = [];
           $cities = [];
+
           forEach($cityPerMonth as $_cities) {
             forEach($_cities as $city) {
-              if (count($city["data"]) === 0) $incompleteCities[$city["id"]] = true;
+              if (isset($city["data"])):
+                $key = "data";
+              else:
+                $key = "instance";
+              endif;
+
+              if (count($city[$key]) === 0) $incompleteCities[$city["id"]] = true;
               if(!isset($cities[$city["id"]])) {
                 $cities[$city["id"]] = $city;
-                $cities[$city["id"]]["data"] = [];
+                $cities[$city["id"]][$key] = [];
               }
-              $cities[$city["id"]]["data"] = array_merge($cities[$city["id"]]["data"], $city["data"]);
+              $cities[$city["id"]][$key] = array_merge($cities[$city["id"]][$key], $city[$key]);
             }
           }
           $incompleteCities = array_keys($incompleteCities);
         }
         forEach($cities as $i => $city) {
           if (in_array($city["id"], $incompleteCities)) continue;
-          if ( count ($city["data"]) == 0) continue;
+          if (isset($city["data"])):
+            $key = "data";
+          else:
+            $key = "instance";
+          endif;
+          if ( count ($city[$key]) == 0) continue;
           if (!isset($responseArray[$city["id"]])) {
             $responseArray[$city["id"]] = array();
             $count ++;
@@ -385,16 +388,16 @@ class CityController extends Controller
           $crimes = 0;
           $population = 0;
           $change = 0;
-          forEach($city["data"] as $i=>$data) {
-            $crimes += $data["crimeCount"];
-            $population += $data["population"];
-            $change += ($data["crimeCount"] * 100000) / $data["population"];
+          forEach($city[$key] as $i=>$data) {
+            $crimes += intval(str_replace(",", "", $data["crimeCount"]));
+            $population += intval(str_replace(",", "", $data["population"]));
+            $change += (intval(str_replace(",", "", $data["crimeCount"])) * 100000) / intval(str_replace(",", "", $data["population"]));
           }
           $responseArray[$city["id"]][] = array(
-            "population"=> floor($population / count($city["data"])),
+            "population"=> floor($population / count($city[$key])),
             "crimes"=> $crimes,
             "timespan"=> $timespan,
-            "rate"=> round(($change / count($city["data"]) * ($yearData ? 1 : 12)), 4)
+            "rate"=> round(($change / count($city[$key]) * ($yearData ? 1 : 12)), 4)
           );
         }
       }
