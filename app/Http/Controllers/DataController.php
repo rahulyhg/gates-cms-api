@@ -117,7 +117,7 @@ class DataController extends Controller
           $city->long = $_request['longitude'];
           $city->lat = $_request['latitude'];
           $city->body = isset($_request['methodology']) ? $_request['methodology'] : '';
-          $pop = (int) $_request['population'];
+          $pop = intval(str_replace(",", "", $_request['population']));
           $city->populationGroup = $pop > 1000000 ? 3 : ($pop > 500000 ? 2 : 1);
           // populationGroups: [
           //   {value: 1, text: 'under 500k'},
@@ -255,7 +255,7 @@ class DataController extends Controller
           $instance->long = $_request['longitude'];
           $instance->lat = $_request['latitude'];
           $instance->tract_id = $_request['geoid'];
-          $instance->population = $_request['population'];
+          $instance->population = intval(str_replace(",", "", $_request['population']));
 
           $instance->save();
         }

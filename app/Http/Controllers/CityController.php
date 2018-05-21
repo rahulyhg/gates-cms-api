@@ -243,19 +243,17 @@ class CityController extends Controller
 
       $city_ids = $request->input('cityIds', array());
       $tract_ids = $request->input('tractIds', array());
+      if (gettype($city_ids) == 'string') {$city_ids = explode(',', $city_ids);}
       if (gettype($tract_ids) == 'string') {$tract_ids = explode(',', $tract_ids);}
 
       $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
-
-      $city_ids = $request->input('cityIds', array());
-      $tract_ids = $request->input('tractIds', array());
-      if (gettype($tract_ids) == 'string') {$tract_ids = explode(',', $tract_ids);}
 
 
       $incompleteAllowed = filter_var($request->input('incompleteAllowed', true), FILTER_VALIDATE_BOOLEAN);
       $count = 0;
       $responseArray = array();
       // print_r($request_timespans);
+
       forEach($request_timespans as $timespan) {
 
         $timespans = explode('/', $timespan);
@@ -269,7 +267,6 @@ class CityController extends Controller
        
         $begin = new \DateTime($begin);
         $end = new \DateTime($end);
-
 
 
 
@@ -291,6 +288,7 @@ class CityController extends Controller
                 $query->orderBy('date', 'asc');
               }))
               ->whereIn('id', $city_ids)
+              ->groupBy('id')
               ->get(['id']);
 
             } elseif (count($tract_ids) > 0) {
@@ -301,6 +299,7 @@ class CityController extends Controller
                 $query->orderBy('date', 'asc');
               }))
               ->whereIn('id', $tract_ids)
+              ->groupBy('id')
               ->get(['id']);
             } else {
               $cities = City::with(array('data' => function ($query) use ($_begin, $_end) {
@@ -309,6 +308,7 @@ class CityController extends Controller
                 $query->where('date', '<', $_end->format('Y-m-d')); 
                 $query->orderBy('date', 'asc');
               }))
+              ->groupBy('id')
               ->get(['id']);
             }
             $cityPerYear[] = $cities->toArray();
@@ -343,6 +343,7 @@ class CityController extends Controller
             $_end->add(new \DateInterval('P'.($i + 1).'M'));
 
             if (count($city_ids) > 0) {
+              
               $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
                 $query->where('datatype', '=', 2); 
                 $query->where('date', '>=', $_begin->format('Y-m-d')); 
@@ -350,6 +351,7 @@ class CityController extends Controller
                 $query->orderBy('date', 'asc');
               }))
               ->whereIn('id', $city_ids)
+              ->groupBy('id')
               ->get(['id']);
             } elseif (count($tract_ids) > 0) {
 
@@ -359,6 +361,7 @@ class CityController extends Controller
                 $query->orderBy('date', 'asc');
               }))
               ->whereIn('id', $tract_ids)
+              ->groupBy('id')
               ->get(['id']);
             } else {
               $cities = City::with(array('data' => function ($query) use ($_begin, $_end){
@@ -366,7 +369,9 @@ class CityController extends Controller
                 $query->where('date', '>=', $_begin->format('Y-m-d')); 
                 $query->where('date', '<', $_end->format('Y-m-d')); 
                 $query->orderBy('date', 'asc');
-              }))->get(['id']);
+              }))
+              ->groupBy('id')
+              ->get(['id']);
             }
 
             $cityPerMonth[] = $cities->toArray();
@@ -381,7 +386,6 @@ class CityController extends Controller
               else:
                 $key = "instance";
               endif;
-
               if (count($city[$key]) === 0) $incompleteCities[$city["id"]] = true;
               if(!isset($cities[$city["id"]])) {
                 $cities[$city["id"]] = $city;
