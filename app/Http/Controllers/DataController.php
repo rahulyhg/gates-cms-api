@@ -7,6 +7,8 @@ use App\Models\City;
 use App\Models\Crime;
 use App\Models\Source;
 use App\Models\Media;
+use App\Models\County;
+use App\Models\Instance;
 
 class DataController extends Controller
 { 
@@ -29,6 +31,9 @@ class DataController extends Controller
           break;
         case('Sources'):
           Source::truncate();
+          break;
+        case('Instances'):
+          Instance::truncate();
           break;
       }
     }
@@ -120,6 +125,23 @@ class DataController extends Controller
           //   {value: 3, text: 'over 1M'}
           // ],
           $city->save();
+          $countyNames = array_map('trim', explode(',', $city->county));
+
+          // return response()->json($countyNames, 201);
+          $counties = County::where('STATEFP', $city->state_id)
+          ->whereIn('COUNTYNAME', $countyNames)->pluck('id')->toArray();
+          if (count($counties) > 0) {
+            if (count($counties) !== count($countyNames)) {
+              return response()->json(
+                array(
+                  'error' => 'missing counties', 
+                  'countyNames' => $countyNames,
+                  'countiesReturned' => $counties
+                ), 500);
+            }
+            $city->counties()->sync($counties);
+          }
+
         }
         return response()->json(null, 201);
     }
@@ -193,6 +215,49 @@ class DataController extends Controller
           $data->per100k = $per100;
 
           $data->save();
+        }
+        return response()->json(null, 201);
+    }
+
+
+    public function instances(Request $request)
+    {
+        $requests = $request->all();
+
+        $this->validate($request, [
+          '*.year' => 'required',
+          '*.month' => 'required',
+          '*.date' => 'required',
+          '*.state_abr' => 'required',
+          '*.crime_type' => 'required',
+          '*.crime_count' => 'required',
+          '*.latitude' => 'required',
+          '*.longitude' => 'required',
+          '*.geoid' => 'required',
+          '*.population' => 'required'
+         ]);
+        $requests = $request->all();
+
+        forEach($requests as $_request) {
+
+
+          $instance = new Instance();
+
+          $instance->year = $_request['year'];
+          $instance->month = $_request['month'];
+
+          $date = date ('Y-m-d', strtotime($_request['date'] . ' 00:00:00') );
+          $instance->date = $date;
+
+          $instance->state_abr = $_request['state_abr'];
+          $instance->crime_type = $_request['crime_type'];
+          $instance->crimeCount = $_request['crime_count'];
+          $instance->long = $_request['longitude'];
+          $instance->lat = $_request['latitude'];
+          $instance->tract_id = $_request['geoid'];
+          $instance->population = $_request['population'];
+
+          $instance->save();
         }
         return response()->json(null, 201);
     }
