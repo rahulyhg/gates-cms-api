@@ -28,6 +28,39 @@ class CityController extends Controller
     {
       $cities = City::with('state')->get(['id', 'title as name', 'lat', 'long', 'state_id']);
       return response()->json(array('data'=> $cities), 200, [], JSON_NUMERIC_CHECK);
+    }    
+
+    /**
+     * Get the specified resource from storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function tracts(Request $request)
+    {
+      $city_ids = $request->input('cityIds', array());
+      if (gettype($city_ids) == 'string') {$city_ids = explode(',', $city_ids);}
+      if(count($city_ids) == 0) return response('Invalid CityIds', 400);
+                  // return response()->json(array('data'=> $city_ids), 200, [], JSON_NUMERIC_CHECK);
+
+
+      $cities = City::whereIn('id', $city_ids)
+      ->with([
+        'counties', 
+        'counties.tracts',
+      ])
+      // ->with(['counties:id', 'counties.tracts:id'])
+      ->get(['id']);
+
+      $tractIds = [];
+      foreach($cities as $city) {
+        foreach($city["counties"] as $county) {
+          foreach($county["tracts"] as $tract) {
+            $tractIds[$tract["id"]] = true;
+          }
+        }
+      }
+
+      return response()->json(array('data'=> array_keys($tractIds)), 200, [], JSON_NUMERIC_CHECK);
     }
 
     public function timespan()

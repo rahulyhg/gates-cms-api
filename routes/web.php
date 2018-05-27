@@ -30,6 +30,12 @@ $router->group(['prefix' => 'api/v1/cities/'], function ($app) {
   $app->get('/','CityController@api'); //get all the cities  
 });
 
+
+$router->group(['prefix' => 'api/v1/tracts/'], function ($app) {
+  $app->get('/','CityController@tracts'); //get all the cities  
+  $app->post('/','CityController@tracts'); //get all the cities  
+});
+
 $router->group(['prefix' => 'api/v1/timespan/'], function ($app) {
   $app->get('/','CityController@timespan'); //get all the timespan  
 });
