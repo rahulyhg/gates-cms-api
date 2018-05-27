@@ -86,10 +86,11 @@ class CityController extends Controller
 
       $includeData = filter_var($request->input('includeData', true), FILTER_VALIDATE_BOOLEAN);
       $includeMeta = filter_var($request->input('includeMeta', false), FILTER_VALIDATE_BOOLEAN);
+      $includeAll = filter_var($request->input('includeAll', false), FILTER_VALIDATE_BOOLEAN);
 
       $request_timespans = $request->input('timespans', array());
       if (count($request_timespans) == 0 && $includeData) $request_timespans = array($request->input('gettimespans', array()));
-      if (count($request_timespans) == 0 && $includeData) return response('Invalid Time Format', 400);
+      if (count($request_timespans) == 0 && $includeData && !$includeAll) return response('Invalid Time Format', 400);
       if (count($request_timespans) == 1 && $includeData) $request_timespans = array($request_timespans);
 
       $city_ids = $request->input('cityIds', array());
@@ -105,7 +106,7 @@ class CityController extends Controller
       $count = 0;
       $responseArray = array();
 
-      if ($includeData):
+      if ($includeData && !$includeAll):
         forEach($request_timespans as $timespan) {
           $timespans = gettype($timespan) == "array" ? $timespan : explode('/', $timespan);
 
@@ -198,6 +199,33 @@ class CityController extends Controller
 
       endif;
 
+      if ($includeAll && count($city_ids) > 0) {
+        $data = Data::whereIn('city_id', $city_ids)
+          ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
+          ->orderBy('date', 'asc')
+          ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype'])
+          ->toArray();
+
+          $singleCityMapping = function ($value) {
+            $newVal = [];
+            $newVal['id'] = $value['city']['id'];
+            $newVal['year'] = date ('Y', strtotime ($value['date']) );
+              $newVal['month'] = $value['datatype'] == 2 ? date ('m', strtotime ($value['date']) ) : 'yearly data';
+            $newVal['state_abr'] = $value['city']['state']['abbreviation'];
+            $newVal['county_name'] = $value['city']['county'];
+            $newVal['place_name'] = $value['city']['title'];
+            $newVal['population_est'] = $value['population'];
+            $newVal['crime_type'] = $value['crime']['name'];
+            $newVal['crime_count'] = $value['crimeCount'];
+            $newVal['annualized_rate_per_100k'] = $value['per100k'];
+            $newVal['source_desc'] = $value['source']['name'];
+            return $newVal;
+          };
+      // return response()->json(array('data'=>$data), 200, [], JSON_NUMERIC_CHECK);
+
+        $responseArray = array_map($singleCityMapping, $data);
+      }
+
       $headers = [
               'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
           ,   'Expires'             => '0'
@@ -223,12 +251,14 @@ class CityController extends Controller
         if (count($responseArray) > 0) {
           array_unshift($responseArray, array_keys($responseArray[0]));
         }
-        
+
         $callback = function() use ($responseArray) {
+
           $FH = fopen('php://output', 'w');
           foreach ($responseArray as $row) { 
               fputcsv($FH, $row);
           }
+
           fclose($FH);
         };
 
