@@ -241,7 +241,6 @@ class CityController extends Controller
            
           return ($dateTimestamp1 > $dateTimestamp2);
       });
-      return response()->json(array('data'=>$responseArray));
 
       if ($format == 'xlsx' && $includeData && !$includeMeta):
         $headers['Content-type'] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
