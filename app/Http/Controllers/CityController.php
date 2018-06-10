@@ -105,11 +105,14 @@ class CityController extends Controller
 
       $count = 0;
       $responseArray = array();
-
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
       if ($includeData && !$includeAll):
         forEach($request_timespans as $timespan) {
           $timespans = gettype($timespan) == "array" ? $timespan : explode('/', $timespan);
-
+          // $timespans = (count($timespans) != 1 && $includeData)  ? $timespan : explode('/', $timespan[0]);
+          // return response()->json(array('data'=>$timespans), 200, [], JSON_NUMERIC_CHECK);
           if (count($timespans) != 2 && $includeData) return response('Invalid Time Format - 2', 400);
 
           //YYYY-MM-DDT13:00:00Z/YYYY-MM-DDT15:30:00Z
@@ -226,12 +229,20 @@ class CityController extends Controller
         $responseArray = array_map($singleCityMapping, $data);
       }
 
+      // $headers = [
+      //         'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
+      //     ,   'Expires'             => '0'
+      //     ,   'Pragma'              => 'public',
+      //     'Access-Control-Allow-Origin'      => '*'
+      //   ];
+
       $headers = [
-              'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0'
-          ,   'Expires'             => '0'
-          ,   'Pragma'              => 'public',
-          'Access-Control-Allow-Origin'      => '*'
-        ];
+          'Access-Control-Allow-Origin'      => '*',
+          'Access-Control-Allow-Methods'     => 'POST, GET',
+          'Access-Control-Allow-Credentials' => 'true',
+          'Access-Control-Max-Age'           => '86400',
+          'Access-Control-Allow-Headers'     => 'Content-Type, Authorization, X-Requested-With'
+      ];
 
       usort($responseArray, function ($a, $b) {
           $date1 = $a["year"] . "-" . (isset($a["month"]) ? $a["month"] : "01") . "-01";
@@ -313,16 +324,9 @@ class CityController extends Controller
         }
         $zipper->close();
         return response()->download($zip, "export.zip", $headers);
-
       elseif(!$includeData && $includeMeta):
 
-        $headers = [
-            'Access-Control-Allow-Origin'      => '*',
-            'Access-Control-Allow-Methods'     => 'POST, GET, OPTIONS, PUT, DELETE, PATCH',
-            'Access-Control-Allow-Credentials' => 'true',
-            'Access-Control-Max-Age'           => '86400',
-            'Access-Control-Allow-Headers'     => 'Content-Type, Authorization, X-Requested-With'
-        ];
+
 
         $metadata = Sheet::where('type', 'Metadata')
         ->orderBy('created_at', 'desc')
