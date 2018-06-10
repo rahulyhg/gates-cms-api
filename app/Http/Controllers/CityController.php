@@ -233,6 +233,16 @@ class CityController extends Controller
           'Access-Control-Allow-Origin'      => '*'
         ];
 
+      usort($responseArray, function ($a, $b) {
+          $date1 = $a["year"] . "-" . (isset($a["month"]) ? $a["month"] : "01") . "-01";
+          $date2 = $b["year"] . "-" . (isset($b["month"]) ? $b["month"] : "01") . "-01";
+          $dateTimestamp1 = strtotime($date1);
+          $dateTimestamp2 = strtotime($date2);
+           
+          return ($dateTimestamp1 > $dateTimestamp2);
+      });
+      return response()->json(array('data'=>$responseArray));
+
       if ($format == 'xlsx' && $includeData && !$includeMeta):
         $headers['Content-type'] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         $headers['Content-Disposition'] = "attachment; filename=export.xlsx";
