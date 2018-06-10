@@ -10,6 +10,7 @@ use App\Models\Tract;
 use App\Models\County;
 use App\Models\Instance;
 
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Response;
@@ -325,13 +326,29 @@ class CityController extends Controller
         $zipper->close();
         return response()->download($zip, "export.zip", $headers);
       elseif(!$includeData && $includeMeta):
-
-
-
         $metadata = Sheet::where('type', 'Metadata')
         ->orderBy('created_at', 'desc')
         ->firstOrFail();
-        return redirect()->to("https://res.cloudinary.com/gates/raw/upload/" . $metadata->data, 302, $headers);
+
+        $source = "https://res.cloudinary.com/gates/raw/upload/" . $metadata->data;
+        $data = file_get_contents($source);
+        $path = storage_path("metadata.pdf");
+
+        file_put_contents($path, $data);
+
+
+        // $type = 'application/pdf';
+        // $headers['Content-Type'] = $type;
+
+        // $response = new BinaryFileResponse($data, 200 , $headers);
+
+        // return $response;
+
+
+        // return response()->stream($data, "export.zip", $headers);
+        return response()->download($path, "metadata.pdf", $headers);
+
+        // return redirect()->to("https://res.cloudinary.com/gates/raw/upload/" . $metadata->data, 302, $headers);
 
       endif;
     }
