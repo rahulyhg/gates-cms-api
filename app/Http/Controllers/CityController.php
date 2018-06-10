@@ -170,7 +170,7 @@ class CityController extends Controller
             $newVal['county_name'] = $value['city']['county'];
             $newVal['place_name'] = $value['city']['title'];
             $newVal['population_est'] = $value['population'];
-            $newVal['crime_type'] = $value['crime']['name'];
+            $newVal['crime_type'] = $value['crime']['name'] == "homicide" ? "murder" : $value['crime']['name'];
             $newVal['crime_count'] = $value['crimeCount'];
             $newVal['annualized_rate_per_100k'] = $value['per100k'];
             $newVal['source_desc'] = $value['source']['name'];
@@ -215,7 +215,7 @@ class CityController extends Controller
             $newVal['county_name'] = $value['city']['county'];
             $newVal['place_name'] = $value['city']['title'];
             $newVal['population_est'] = $value['population'];
-            $newVal['crime_type'] = $value['crime']['name'];
+            $newVal['crime_type'] = $value['crime']['name'] == "homicide" ? "murder" : $value['crime']['name'];
             $newVal['crime_count'] = $value['crimeCount'];
             $newVal['annualized_rate_per_100k'] = $value['per100k'];
             $newVal['source_desc'] = $value['source']['name'];
