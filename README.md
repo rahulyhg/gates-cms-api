@@ -1,7 +1,11 @@
 
-## Example command to make a new table
+## Example command to design a new table
 
 `php artisan make:migration create_cities_table --create=cities`
+
+## Example command to make the new table
+
+`php artisan migrate`
 
 ## Example command to make a new seeder
 
