@@ -11,8 +11,6 @@
 |
 */
 use Illuminate\Http\Request;
-use App\Models\Page;
-use App\Controllers\PageController;
 
 
 $router->get('/', function () use ($router) {
@@ -78,6 +76,17 @@ $router->group(['prefix' => 'api/v1/page/', 'middleware' => 'auth'], function ($
 $router->group(['prefix' => 'api/v1/page/'], function ($app) {
   $app->get('/','PageController@index'); //get all the routes  
   $app->get('/{id}/', 'PageController@show'); //get single route
+});
+
+$router->group(['prefix' => 'api/v1/post/', 'middleware' => 'auth'], function ($app) {
+  $app->post('/','PostController@store'); //store single route
+  $app->patch('/{id}/','PostController@update'); //update single route
+  $app->delete('/{id}/','PostController@destroy'); //delete single route
+});
+
+$router->group(['prefix' => 'api/v1/post/'], function ($app) {
+  $app->get('/','PostController@index'); //get all the routes  
+  $app->get('/{id}/', 'PostController@show'); //get single route
 });
 
 $router->group(['prefix' => 'api/v1/city/', 'middleware' => 'auth'], function ($app) {
