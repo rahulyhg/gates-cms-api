@@ -92,7 +92,7 @@ class CityController extends Controller
       $request_timespans = $request->input('timespans', array());
       if (count($request_timespans) == 0 && $includeData) $request_timespans = array($request->input('gettimespans', array()));
       if (count($request_timespans) == 0 && $includeData && !$includeAll) return response('Invalid Time Format', 400);
-      if (count($request_timespans) == 1 && $includeData) $request_timespans = array($request_timespans);
+      if (gettype($request_timespans) != "array" && $includeData) $request_timespans = array($request_timespans);
 
       $city_ids = $request->input('cityIds', array());
       $tract_ids = $request->input('tractIds', array());
@@ -114,6 +114,7 @@ class CityController extends Controller
           $timespans = gettype($timespan) == "array" ? $timespan : explode('/', $timespan);
           // $timespans = (count($timespans) != 1 && $includeData)  ? $timespan : explode('/', $timespan[0]);
           // return response()->json(array('data'=>$timespans), 200, [], JSON_NUMERIC_CHECK);
+          // return response()->json($timespans);
           if (count($timespans) != 2 && $includeData) return response('Invalid Time Format - 2', 400);
 
           //YYYY-MM-DDT13:00:00Z/YYYY-MM-DDT15:30:00Z
