@@ -121,7 +121,6 @@ class CityController extends Controller
           $begin = date ('Y-m-d 00:00:00', strtotime ($timespans[0]) );
           $end = date ('Y-m-d 00:00:00', strtotime ($timespans[1]) );
 
-
           // $cities = City::with(array('data' => function ($query) use ($begin, $end) {
           //   $query->where('datatype', '=', 1);
           //   $query->where('date', '>=', $begin); 
@@ -137,6 +136,7 @@ class CityController extends Controller
               ->whereIn('city_id', $city_ids)
               ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
               ->orderBy('date', 'asc')
+              ->groupBy('datatype', 'date', 'city_id', 'crime_id')
               ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
           } elseif (count($tract_ids) > 0) {
             $data = Instance::where('date', '>=', $begin)
@@ -144,6 +144,7 @@ class CityController extends Controller
               ->whereIn('tract_id', $tract_ids)
               // ->with(['tract'])
               ->orderBy('date', 'asc')
+              ->groupBy('datatype', 'date', 'city_id', 'crime_id')
               ->get(['year', 'month', 'date', 'state_abr', 'crime_type', 'crimeCount', 'lat', 'long', 'tract_id', 'population']);
             // return response()->json(array('data'=>$data));
           } else {
@@ -152,6 +153,7 @@ class CityController extends Controller
               ->where('date', '<=', $end)
               ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
               ->orderBy('date', 'asc')
+              ->groupBy('datatype', 'date', 'city_id', 'crime_id')
               ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
           }
    
@@ -255,6 +257,8 @@ class CityController extends Controller
       });
 
       if ($format == 'xlsx' && $includeData && !$includeMeta):
+
+
         $headers['Content-type'] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         $headers['Content-Disposition'] = "attachment; filename=export.xlsx";
         Excel::create('Laravel Excel', function($excel) use ($responseArray) {
@@ -266,6 +270,8 @@ class CityController extends Controller
             });
         })->download('xls', $headers);
       elseif($format == 'csv' && $includeData && !$includeMeta):
+
+
         $headers['Content-type'] = "text/csv";
         $headers['Content-Disposition'] = "attachment; filename=export.csv";
 
@@ -411,6 +417,7 @@ class CityController extends Controller
                 $query->where('datatype', '=', 1);
                 $query->where('date', '>=', $_begin->format('Y-m-d')); 
                 $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->groupBy('datatype', 'date', 'city_id', 'crime_id');
                 $query->orderBy('date', 'asc');
               }))
               ->whereIn('id', $city_ids)
@@ -422,6 +429,7 @@ class CityController extends Controller
 
                 $query->where('date', '>=', $_begin->format('Y-m-d')); 
                 $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->groupBy('datatype', 'date', 'city_id', 'crime_id');
                 $query->orderBy('date', 'asc');
               }))
               ->whereIn('id', $tract_ids)
@@ -432,6 +440,7 @@ class CityController extends Controller
                 $query->where('datatype', '=', 1);
                 $query->where('date', '>=', $_begin->format('Y-m-d')); 
                 $query->where('date', '<', $_end->format('Y-m-d')); 
+                $query->groupBy('datatype', 'date', 'city_id', 'crime_id');
                 $query->orderBy('date', 'asc');
               }))
               ->groupBy('id')
