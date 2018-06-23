@@ -88,7 +88,6 @@ class CityController extends Controller
       $includeData = filter_var($request->input('includeData', true), FILTER_VALIDATE_BOOLEAN);
       $includeMeta = filter_var($request->input('includeMeta', false), FILTER_VALIDATE_BOOLEAN);
       $includeAll = filter_var($request->input('includeAll', false), FILTER_VALIDATE_BOOLEAN);
-      $yearAndMonth = filter_var($request->input('yearAndMonth', false), FILTER_VALIDATE_BOOLEAN);
 
       $request_timespans = $request->input('timespans', array());
       if (count($request_timespans) == 0 && $includeData) $request_timespans = array($request->input('gettimespans', array()));
@@ -104,6 +103,8 @@ class CityController extends Controller
       $format = $request->input('format', 'csv');
       
       $yearData = filter_var($request->input('yearData', false), FILTER_VALIDATE_BOOLEAN);
+      $monthData = filter_var($request->input('monthData', false), FILTER_VALIDATE_BOOLEAN);
+      $yearAndMonth = $yearData && $monthData;
 
       $count = 0;
       $responseArray = array();
