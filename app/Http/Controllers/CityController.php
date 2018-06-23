@@ -163,7 +163,7 @@ class CityController extends Controller
 
           $data = $data->toArray();
           $count += count($data);
-          $cityMapping = function ($value) use ($request_timespans, $begin, $end, $yearData) {
+          $cityMapping = function ($value) use ($request_timespans, $begin, $end, $yearData, $yearAndMonth) {
             $newVal = [];
             if (count($request_timespans) > 1) {
               $b = explode(' ', $begin);
