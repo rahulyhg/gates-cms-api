@@ -88,6 +88,7 @@ class CityController extends Controller
       $includeData = filter_var($request->input('includeData', true), FILTER_VALIDATE_BOOLEAN);
       $includeMeta = filter_var($request->input('includeMeta', false), FILTER_VALIDATE_BOOLEAN);
       $includeAll = filter_var($request->input('includeAll', false), FILTER_VALIDATE_BOOLEAN);
+      $yearAndMonth = filter_var($request->input('yearAndMonth', false), FILTER_VALIDATE_BOOLEAN);
 
       $request_timespans = $request->input('timespans', array());
       if (count($request_timespans) == 0 && $includeData) $request_timespans = array($request->input('gettimespans', array()));
@@ -131,14 +132,14 @@ class CityController extends Controller
 
           // $data = Data::with('city', 'state')
           if (count($city_ids) > 0) {
-            $data = Data::where('datatype', '=', $yearData ? 1 : 2)
+            $data = Data::where('datatype', ($yearAndMonth ? '!=' : '='), $yearAndMonth ? 999 : ($yearData ? 1 : 2)) // if yearAndMonth look for datatype != 999 else look for yearData...
               ->where('date', '>=', $begin)
               ->where('date', '<=', $end)
               ->whereIn('city_id', $city_ids)
               ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
               ->orderBy('date', 'asc')
               ->groupBy('datatype', 'date', 'city_id', 'crime_id')
-              ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
+              ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype']);
           } elseif (count($tract_ids) > 0) {
             $data = Instance::where('date', '>=', $begin)
               ->where('date', '<=', $end)
@@ -149,13 +150,13 @@ class CityController extends Controller
               ->get(['year', 'month', 'date', 'state_abr', 'crime_type', 'crimeCount', 'lat', 'long', 'tract_id', 'population']);
             // return response()->json(array('data'=>$data));
           } else {
-            $data = Data::where('datatype', '=', $yearData ? 1 : 2)
+            $data = Data::where('datatype', ($yearAndMonth ? '!=' : '='), $yearAndMonth ? 999 : ($yearData ? 1 : 2)) // if yearAndMonth look for datatype != 999 else look for yearData...
               ->where('date', '>=', $begin)
               ->where('date', '<=', $end)
               ->with(['city:id,title,county,state_id', 'city.state:id,abbreviation,title', 'crime:id,name', 'source:id,name'])
               ->orderBy('date', 'asc')
               ->groupBy('datatype', 'date', 'city_id', 'crime_id')
-              ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id']);
+              ->get(['id','city_id','crimeCount','crime_id','date','per100k','population','source_id', 'datatype']);
           }
    
 
@@ -170,8 +171,8 @@ class CityController extends Controller
             }
             $newVal['id'] = $value['city']['id'];
             $newVal['year'] = date ('Y', strtotime ($value['date']) );
-            if (!$yearData) {
-              $newVal['month'] = date ('m', strtotime ($value['date']) );
+            if (!$yearData || $yearAndMonth) {
+              $newVal['month'] = $value['datatype'] == 1 ? 'year' : date ('m', strtotime ($value['date']) );
             }
             $newVal['state_abr'] = $value['city']['state']['abbreviation'];
             $newVal['county_name'] = $value['city']['county'];
@@ -217,7 +218,7 @@ class CityController extends Controller
             $newVal = [];
             $newVal['id'] = $value['city']['id'];
             $newVal['year'] = date ('Y', strtotime ($value['date']) );
-              $newVal['month'] = $value['datatype'] == 2 ? date ('m', strtotime ($value['date']) ) : 'yearly data';
+              $newVal['month'] = $value['datatype'] == 2 ? date ('m', strtotime ($value['date']) ) : 'year';
             $newVal['state_abr'] = $value['city']['state']['abbreviation'];
             $newVal['county_name'] = $value['city']['county'];
             $newVal['place_name'] = $value['city']['title'];
